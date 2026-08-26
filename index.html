@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Quiz Management System</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom External CSS File -->
+    <link rel="stylesheet" href="index.css">
+</head>
+<body class="min-vh-100 d-flex flex-column transition-all">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm no-print navbar-custom">
+        <div class="container-fluid px-4">
+            <!-- Brand Logo -->
+            <a class="navbar-brand d-flex align-items-center gap-2 font-bold" href="#" onclick="navigateToHome()">
+                <i class="fa-solid fa-graduation-cap fs-3 text-sage pulse-icon"></i>
+                <span class="fs-4 fw-bold tracking-tight text-dark">Smart Quiz System</span>
+            </a>
+
+            <!-- Navbar Toggler for Mobile -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-menu navbar-nav me-auto ms-lg-4 fw-semibold small">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="navigateToHome()">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#practiceSection" onclick="navigateToHome()">Practice Quizzes</a></li>
+                    <li class="nav-item"><a class="nav-link" id="nav-community" href="#" onclick="showCommunityView()"><i class="fa-solid fa-comments text-sage me-1"></i> Community Hub</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#featuresSection" onclick="navigateToHome()">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#aboutSection" onclick="navigateToHome()">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contactSection" onclick="navigateToHome()">Contact Us</a></li>
+                </ul>
+
+                <!-- User Auth status, Theme Toggle & Actions -->
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Light / Dark Mode Toggle Button -->
+                    <button class="btn btn-outline-sage btn-sm fw-bold rounded-pill px-3" onclick="toggleThemeMode()" id="themeToggleBtn">
+                        <i class="fa-solid fa-sun me-1"></i> <span id="themeDisplay">Light Mode</span>
+                    </button>
+
+                    <!-- Logged In User Badge -->
+                    <div id="currentUserBadge" class="d-none badge-user px-3 py-1.5 rounded-pill border small">
+                        <i class="fa-solid fa-user-circle text-sage me-1 fs-6"></i>
+                        <span id="userNameDisplay" class="fw-bold text-dark">User</span>
+                        <span id="userRoleBadge" class="badge bg-sage text-white ms-1">Role</span>
+                    </div>
+
+                    <!-- Guest Login Action Button -->
+                    <div id="navGuestLinks">
+                        <button onclick="showLoginModal()" class="btn btn-sage btn-sm fw-bold shadow-sm">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In / Portal Access
+                        </button>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button id="logoutBtn" onclick="handleLogout()" class="d-none btn btn-outline-danger btn-sm shadow-sm fw-bold">
+                        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow-1 container py-4">
+
+        <!-- ==================== PUBLIC HOME PAGE (GUEST PRACTICE MODE) ==================== -->
+        <section id="view-public-home" class="space-y-5 fade-in">
+            <!-- Hero Banner -->
+            <div class="hero-card p-5 rounded-4 shadow-sm border border-sage-subtle position-relative overflow-hidden">
+                <div class="hero-circle-bg"></div>
+                <div class="row align-items-center position-relative z-1">
+                    <div class="col-lg-8">
+                        <span class="badge bg-sage-light text-sage fw-bold mb-2 px-3 py-1.5 rounded-pill shadow-xs border border-sage-subtle">
+                            <i class="fa-solid fa-sparkles me-1"></i> Academic Examination & Learning System
+                        </span>
+                        <h1 class="fw-extrabold mb-3 display-5 text-dark">Smart Quiz Management System</h1>
+                        <p class="lead mb-4 text-secondary fs-6 leading-relaxed">
+                            Practice open academic quizzes freely without logging in. Official course examinations are strictly protected with 6-digit access codes, Anti-Cheating guards, and pre-enrolled scope restrictions for students.
+                        </p>
+                        <a href="#practiceSection" class="btn btn-sage btn-lg font-bold shadow-sm">
+                            <i class="fa-solid fa-book-open me-2"></i> Explore Practice Quizzes
+                        </a>
+                        <button onclick="showCommunityView()" class="btn btn-outline-sage btn-lg font-bold shadow-sm">
+                                <i class="fa-solid fa-comments me-2"></i> Join Community Chat
+                        </button>
+                    </div>
+                    <div class="col-lg-4 text-center d-none d-lg-block">
+                        <div class="floating-illustration">
+                            <i class="fa-solid fa-laptop-code text-sage opacity-75" style="font-size: 8.5rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public Practice Quizzes List -->
+            <div id="practiceSection" class="pt-3">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-start border-4 border-sage ps-3">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">📖 Available Practice Quizzes</h4>
+                        <small class="text-muted">Open Practice Quizzes Created by System & Faculty Instructors (Free Unlimited Access)</small>
+                    </div>
+                    <span class="badge bg-sage-light text-sage rounded-pill px-3 py-1 fw-bold border border-sage-subtle">No Login Required</span>
+                </div>
+
+                <!-- Search Bar for Practice Quizzes -->
+                <div class="mb-4">
+                    <div class="input-group shadow-sm rounded-3">
+                        <span class="input-group-text bg-body border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="practiceSearchInput" onkeyup="filterPracticeQuizzes()" placeholder="Search practice quizzes by title or subject name..." class="form-control border-start-0 py-2">
+                    </div>
+                </div>
+
+                <div id="practiceQuizContainer" class="row g-4">
+                    <!-- Dynamic Practice Quizzes -->
+                </div>
+            </div>
+
+            <!-- FEATURES SECTION -->
+            <div id="featuresSection" class="pt-4 border-top">
+                <div class="text-center mb-4">
+                    <span class="badge bg-sage-light text-sage fw-bold px-3 py-1 rounded-pill border border-sage-subtle">System Highlights</span>
+                    <h3 class="fw-bold mt-2 text-dark">Platform Features</h3>
+                    <p class="text-muted small">Designed for security, course enrollment control, and easy analytics.</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 hover-lift bg-body-tertiary">
+                            <div class="icon-box bg-sage-light text-sage rounded-3 p-3 fs-3 mb-3 d-inline-block border border-sage-subtle">
+                                <i class="fa-solid fa-shield-cat"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Anti-Cheating Control</h5>
+                            <p class="text-secondary small mb-0">Monitors tab switching or window minimization during exams. Automatic termination triggered on multiple violations.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 hover-lift bg-body-tertiary">
+                            <div class="icon-box bg-sage-light text-sage rounded-3 p-3 fs-3 mb-3 d-inline-block border border-sage-subtle">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Pre-Enrolled Scope Guard</h5>
+                            <p class="text-secondary small mb-0">Students can only access quizzes relevant to their Year & Major (IST,CE, ECE, PrE, AME) with 6-digit access codes.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 hover-lift bg-body-tertiary">
+                            <div class="icon-box bg-sage-light text-sage rounded-3 p-3 fs-3 mb-3 d-inline-block border border-sage-subtle">
+                                <i class="fa-solid fa-comments"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Community Group Chat</h5>
+                            <p class="text-secondary small mb-0">Real-time collaboration hub for students, faculty, and admins with official announcements & message pinning.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABOUT US SECTION -->
+            <div id="aboutSection" class="pt-4 border-top">
+                <div class="card border-0 shadow-sm rounded-4 p-5 bg-sage-light border-sage-subtle">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-7">
+                            <span class="badge bg-white text-sage fw-bold mb-2 px-3 py-1 rounded-pill border border-sage-subtle">About Our Platform</span>
+                            <h3 class="fw-bold text-dark mb-3">Empowering Technological Education</h3>
+                            <p class="text-secondary leading-relaxed mb-3">
+                                Smart Quiz System is built to deliver streamlined academic assessments for technological university departments including IST, CE, ECE, PrE, and AME.
+                            </p>
+                            <p class="text-secondary leading-relaxed mb-0">
+                                With structured pre-enrolled major courses from 1st Year to 6th Year, students can securely undertake official exams or practice freely across open modules.
+                            </p>
+                        </div>
+                        <div class="col-lg-5 text-center">
+                            <i class="fa-solid fa-building-columns text-sage opacity-75" style="font-size: 7rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTACT US SECTION -->
+            <div id="contactSection" class="pt-4 border-top">
+                <div class="text-center mb-4">
+                    <span class="badge bg-sage-light text-sage fw-bold px-3 py-1 rounded-pill border border-sage-subtle">Get In Touch</span>
+                    <h3 class="fw-bold mt-2 text-dark">Contact Us</h3>
+                    <p class="text-muted small">Have questions or need account support? Send us a message.</p>
+                </div>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-body-tertiary space-y-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-location-dot text-sage fs-4"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Location</h6>
+                                    <small class="text-muted">Faculty of Information Science & Tech</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-envelope text-sage fs-4"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Email Support</h6>
+                                    <small class="text-muted">support@smartquiz.edu.mm</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-phone text-sage fs-4"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Phone</h6>
+                                    <small class="text-muted">+95 9 123 456 789</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-tertiary">
+                            <form onsubmit="alert('Thank you! Your message has been sent to the system administrator.'); event.preventDefault();">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Your Full Name</label>
+                                    <input type="text" required placeholder="John Doe" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Email Address</label>
+                                    <input type="email" required placeholder="name@mail.com" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Message</label>
+                                    <textarea rows="3" required placeholder="Write your inquiry..." class="form-control"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-sage fw-bold w-100">Send Message</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== COMMUNITY GROUP CHAT BOX SECTION ==================== -->
+        <section id="view-community-hub" class="d-none fade-in space-y-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-3 bg-white">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-comments text-sage me-2"></i> Campus Community Group Chat</h3>
+                        <p class="text-muted mb-0 small">Open discussion forum for Students, Faculty Teachers, and Administrators.</p>
+                    </div>
+                    <span class="badge bg-sage-light text-sage px-3 py-2 rounded-pill fw-bold border border-sage-subtle">
+                        <i class="fa-solid fa-circle text-success me-1"></i> Live Chat Active
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Chat Info & Pinned Announcements Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-shield-halved text-sage me-2"></i> Group Chat Info</h5>
+                        <p class="text-muted small leading-relaxed mb-3">
+                            Welcome to the official University Community Chat! Share questions, study tips, or course inquiries here.
+                        </p>
+                        
+                        <div class="alert alert-warning border-0 rounded-3 small mb-0 space-y-1">
+                            <strong class="text-dark d-block"><i class="fa-solid fa-user-shield me-1"></i> Admin Controls Available:</strong>
+                            <p class="mb-0 text-secondary" style="font-size:12px;">
+                                System Administrators can post official announcements, pin key messages to the header, and delete inappropriate content.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Pinned Header Message Container -->
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <h6 class="fw-bold mb-2 text-dark d-flex align-items-center">
+                            <i class="fa-solid fa-thumbtack text-danger me-2"></i> Pinned Announcement
+                        </h6>
+                        <div id="pinnedMessageContainer" class="pinned-box p-3 rounded-3 small text-muted">
+                            <em>No message pinned at the moment.</em>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Stream & Input -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="border-bottom pb-3 mb-3 d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-users text-sage me-2"></i> Public Discussion Stream</h6>
+                            <span class="text-muted small" id="chatMessageCount">3 Messages</span>
+                        </div>
+
+                        <!-- Chat Messages List -->
+                        <div id="chatMessagesContainer" class="chat-box-container mb-3">
+                            <!-- Dynamic Messages rendered via JS -->
+                        </div>
+
+                        <!-- Message Input Panel -->
+                        <div class="bg-body-tertiary p-3 rounded-4 border">
+                            <!-- Admin Switch Option for Official Announcements -->
+                            <div id="adminAnnouncementOption" class="d-none mb-2 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="adminAnnouncementToggle">
+                                <label class="form-check-label small fw-bold text-warning-emphasis cursor-pointer" for="adminAnnouncementToggle">
+                                    <i class="fa-solid fa-bullhorn me-1"></i> Post as Official System Announcement (Admin Highlight)
+                                </label>
+                            </div>
+
+                            <form onsubmit="handleSendChatMessage(event)" class="d-flex gap-2">
+                                <input type="text" id="chatInputMessage" class="form-control form-control-lg rounded-3 fs-6" placeholder="Type your message here..." required autocomplete="off">
+                                <button type="submit" class="btn btn-sage fw-bold px-4 rounded-3 shadow-sm">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> Send
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- ==================== PROTECTED STUDENT DASHBOARD ==================== -->
+        <section id="view-student-dashboard" class="d-none space-y-4 fade-in">
+            <!-- Student Profile Header Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark" id="studentWelcomeName">Student Dashboard</h3>
+                        <p class="text-muted mb-0 small">
+                            Roll No: <span id="studentRollDisplay" class="fw-bold text-sage">-</span> | 
+                            Email: <span id="studentEmailDisplay" class="fw-bold text-sage">-</span> | 
+                            Academic Scope: <span id="studentScopeDisplay" class="fw-bold text-sage">-</span>
+                        </p>
+                    </div>
+                    <button onclick="openChangePasswordModal()" class="btn btn-outline-sage btn-sm rounded-3">
+                        <i class="fa-solid fa-key me-1"></i> Change Password
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pre-Enrolled Subjects List Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body-tertiary">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-book-bookmark text-sage me-2"></i> Your Pre-Enrolled Major Subjects</h5>
+                <div id="enrolledSubjectsContainer" class="d-flex flex-wrap gap-2">
+                    <!-- Enrolled badges generated via JS -->
+                </div>
+            </div>
+
+            <!-- 6-Digit Quiz Access Join Box -->
+            <div class="card border-0 shadow-sm rounded-4 bg-sage text-white p-4 mb-4">
+                <div class="max-w-xl">
+                    <h4 class="fw-bold mb-1"><i class="fa-solid fa-lock-open me-2"></i> Join Graded Course Examination</h4>
+                    <p class="small mb-3 text-white-50">Enter the secret 6-digit access code provided by your instructor to start your official course exam.</p>
+                    <div class="input-group">
+                        <input type="text" id="joinCodeInput" maxlength="6" placeholder="e.g. 849201" class="form-control form-control-lg text-uppercase font-monospace fw-bold tracking-widest text-dark">
+                        <button onclick="attemptJoinGradedQuiz()" class="btn btn-dark fw-bold px-4">
+                            Join Examination <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Major Announcements & Assigned Examinations -->
+            <div class="row g-4">
+                <!-- Academic Major Notifications -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bell text-warning me-2"></i> Scope Announcements</h5>
+                        <div id="studentNotificationList" class="space-y-2 overflow-auto max-h-300">
+                            <!-- Dynamic Notifications -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assigned Course Examinations & History Review -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                        <h5 class="fw-bold mb-3 d-flex justify-content-between align-items-center text-dark">
+                            <span><i class="fa-solid fa-calendar-check text-sage me-2"></i> Assigned Examinations & Review</span>
+                            <span class="badge bg-sage-light text-sage fw-bold border border-sage-subtle">Strict Scope Guard</span>
+                        </h5>
+                        <div id="studentAssignedQuizzesList" class="space-y-3">
+                            <!-- Dynamic Course Quizzes -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== PROTECTED TEACHER DASHBOARD ==================== -->
+        <section id="view-teacher-dashboard" class="d-none space-y-4 fade-in">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark" id="teacherPortalWelcome">Teacher Management Portal</h3>
+                    <p class="text-muted mb-0 small">Create course examinations & public practice quizzes, generate access codes, and analyze student scores.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="openTeacherChangePasswordModal()" class="btn btn-outline-sage btn-sm rounded-3">
+                        <i class="fa-solid fa-key me-1"></i> Change Password
+                    </button>
+                    <button onclick="openCreateQuizModal()" class="btn btn-sage fw-bold rounded-3 shadow-sm">
+                        <i class="fa-solid fa-plus-circle me-1"></i> Create New Quiz
+                    </button>
+                </div>
+            </div>
+
+            <!-- Created Examinations Management Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+                    <h6 class="fw-bold mb-0 text-dark">Your Created Examinations & Practice Quizzes</h6>
+                    <span id="teacherQuizCount" class="badge bg-sage rounded-pill">0 Quizzes</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small">
+                            <tr>
+                                <th>Quiz Title</th>
+                                <th>Quiz Type & Scope</th>
+                                <th>Access Code</th>
+                                <th>Schedule Window</th>
+                                <th>Questions</th>
+                                <th>Submissions</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherQuizTableBody">
+                            <!-- Dynamic teacher quiz rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quiz Analytics, Student Submissions & Export CSV -->
+            <div id="teacherResultsSection" class="d-none card border-0 shadow-sm rounded-4 p-4 space-y-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center border-bottom pb-3 gap-2">
+                    <div>
+                        <h4 id="selectedQuizTitle" class="fw-bold mb-0 text-dark">Quiz Score Analytics</h4>
+                        <p id="selectedQuizSub" class="text-muted small mb-0">Access Code: <span class="font-monospace fw-bold text-sage" id="selectedQuizCode"></span></p>
+                    </div>
+                    <div class="d-flex gap-2 no-print">
+                        <button onclick="exportScoresCSV()" class="btn btn-outline-success btn-sm font-semibold">
+                            <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                        </button>
+                        <button onclick="window.print()" class="btn btn-dark btn-sm">
+                            <i class="fa-solid fa-print me-1"></i> Print Report
+                        </button>
+                        <button onclick="closeTeacherResults()" class="btn btn-outline-secondary btn-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card bg-sage-light border-0 p-3 rounded-3 border border-sage-subtle">
+                            <small class="text-sage fw-bold text-uppercase">Submitted Students</small>
+                            <h2 class="fw-bold text-sage mb-0" id="statSubmittedCount">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning-subtle border-0 p-3 rounded-3">
+                            <small class="text-warning-emphasis fw-bold text-uppercase">Pending Students</small>
+                            <h2 class="fw-bold text-warning-emphasis mb-0" id="statPendingCount">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success-subtle border-0 p-3 rounded-3">
+                            <small class="text-success fw-bold text-uppercase">Class Average</small>
+                            <h2 class="fw-bold text-success mb-0" id="statAvgScore">0%</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mt-4 text-dark">Enrolled Students Submission Status (`submitted` / `pending`)</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Submission Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentResultsTableBody">
+                            <!-- Dynamic student scores -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== PROTECTED ADMIN DASHBOARD ==================== -->
+        <section id="view-admin-dashboard" class="d-none space-y-4 fade-in">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark">Admin Control Panel</h3>
+                    <p class="text-muted mb-0 small">Manage student and teacher user records, assign department credentials, and dispatch slips.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="openAddTeacherModal()" class="btn btn-outline-sage fw-bold rounded-3 shadow-sm">
+                        <i class="fa-solid fa-chalkboard-user me-1"></i> Register Teacher
+                    </button>
+                    <button onclick="openAddStudentModal()" class="btn btn-sage fw-bold rounded-3 shadow-sm">
+                        <i class="fa-solid fa-user-plus me-1"></i> Register Student
+                    </button>
+                </div>
+            </div>
+
+            <!-- Teachers Directory Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+                    <h6 class="fw-bold mb-0 text-dark">Registered Faculty Teachers</h6>
+                    <span class="badge bg-sage rounded-pill" id="totalTeachersCount">0 Teachers</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small">
+                            <tr>
+                                <th>Teacher Name</th>
+                                <th>Email Address</th>
+                                <th>Assigned Department</th>
+                                <th>Assigned Password</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTeacherTableBody">
+                            <!-- Dynamic teacher rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Student Directory Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+                    <h6 class="fw-bold mb-0 text-dark">Registered Student Accounts</h6>
+                    <span class="badge bg-secondary rounded-pill" id="totalStudentsCount">0 Students</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small">
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Student Name</th>
+                                <th>Email Address</th>
+                                <th>Academic Scope (Year - Major)</th>
+                                <th>Password</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminStudentTableBody">
+                            <!-- Dynamic student rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== LIVE TIMED QUIZ ENGINE ==================== -->
+        <section id="view-quiz-taking" class="d-none space-y-4 max-w-xl mx-auto fade-in">
+            <!-- Anti-Cheating Warning Banner -->
+            <div id="antiCheatingBanner" class="alert alert-danger d-flex align-items-center gap-2 mb-2 p-2 px-3 small border-0 shadow-sm rounded-3">
+                <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+                <div>
+                    <strong>Anti-Cheating Guard Active:</strong> Switching tabs or windows will trigger a warning. Exceeding 2 warnings will auto-terminate the exam!
+                </div>
+            </div>
+
+            <!-- Timers Header -->
+            <div class="card bg-dark text-white border-0 shadow p-3 rounded-4 sticky-top no-print mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 id="liveQuizTitle" class="fw-bold text-sage-light mb-0">Quiz Examination</h5>
+                        <small id="liveQuizSubject" class="text-muted">Subject / Scope</small>
+                    </div>
+                    <div class="d-flex gap-4">
+                        <div class="text-end">
+                            <small class="text-muted text-uppercase d-block">Overall Timer</small>
+                            <span id="overallTimerDisplay" class="font-monospace fw-bold fs-5 text-success">10:00</span>
+                        </div>
+                        <div class="text-end border-start border-secondary ps-3">
+                            <small class="text-muted text-uppercase d-block">Question Timer</small>
+                            <span id="questionTimerDisplay" class="font-monospace fw-bold fs-5 text-warning">00:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Question Display Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span id="questionProgressText" class="badge bg-sage-light text-sage fw-bold border border-sage-subtle">Question 1 of 10</span>
+                    <span id="questionTypeBadge" class="badge bg-secondary text-uppercase">MULTIPLE CHOICE</span>
+                </div>
+
+                <h5 id="currentQuestionText" class="fw-bold mb-4 text-dark">
+                    Question statement loading...
+                </h5>
+
+                <div id="answersContainer" class="d-grid gap-2 mb-4">
+                    <!-- Dynamic Options -->
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <button id="prevQBtn" onclick="navigateQuestion(-1)" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Previous
+                    </button>
+                    <button id="nextQBtn" onclick="navigateQuestion(1)" class="btn btn-sage fw-bold">
+                        Next <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </button>
+                    <button id="submitQuizBtn" onclick="submitActiveQuiz()" class="d-none btn btn-success fw-bold">
+                        <i class="fa-solid fa-check-circle me-1"></i> Submit Examination
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- UNIFIED ROLE-BASED LOGIN MODAL (STUDENT: 3 SEPARATE INPUTS) -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <div class="text-center mb-3">
+                        <div class="avatar bg-sage-light text-sage rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center border border-sage-subtle" style="width:50px; height:50px;">
+                            <i class="fa-solid fa-user-lock fs-4"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Sign In to Portal</h4>
+                        <p class="text-muted small">Select your role and enter credentials to access your portal</p>
+                    </div>
+
+                    <!-- Role Tabs Selector -->
+                    <ul class="nav nav-pills nav-fill mb-3 bg-body-tertiary p-1 rounded-3 small fw-bold" id="loginRoleTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active rounded-3 py-1.5" onclick="setLoginRole('student')">🎓 Student</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-3 py-1.5" onclick="setLoginRole('teacher')">👨‍🏫 Teacher</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-3 py-1.5" onclick="setLoginRole('admin')">🛠️ Admin</button>
+                        </li>
+                    </ul>
+
+                    <form onsubmit="handleLoginSubmit(event)">
+                        <input type="hidden" id="loginRoleType" value="student">
+                        
+                        <!-- STUDENT LOGIN: 3 SEPARATE INPUTS (ROLL NO, EMAIL, PASSWORD) -->
+                        <div id="studentLoginFields" class="space-y-3">
+                            <div>
+                                <label class="form-label small fw-bold text-sage">1. Roll Number</label>
+                                <input type="text" id="loginRollNo" placeholder="e.g. 3IST-101" class="form-control">
+                            </div>
+                            <div>
+                                <label class="form-label small fw-bold text-sage">2. Email Address</label>
+                                <input type="email" id="loginStudentEmail" placeholder="e.g. john@mail.com" class="form-control">
+                            </div>
+                            <div>
+                                <label class="form-label small fw-bold text-sage">3. Password</label>
+                                <input type="password" id="loginStudentPassword" placeholder="••••••••" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- TEACHER & ADMIN LOGIN FIELDS -->
+                        <div id="staffLoginFields" class="space-y-3 d-none">
+                            <div>
+                                <label class="form-label small fw-bold" id="staffEmailLabel">Email Address</label>
+                                <input type="email" id="loginStaffEmail" placeholder="e.g. admin@smartquiz.com" class="form-control">
+                            </div>
+                            <div>
+                                <label class="form-label small fw-bold">Password</label>
+                                <input type="password" id="loginStaffPassword" placeholder="••••••••" class="form-control">
+                            </div>
+                        </div>
+
+                        <div id="loginError" class="d-none alert alert-danger small p-2 mt-3 mb-0">
+                            Invalid account credentials or unauthorized status!
+                        </div>
+                        
+                        <!-- SIGN IN BUTTON WITH SPACING MARGIN -->
+                        <button type="submit" class="btn btn-sage w-100 fw-bold py-2.5 shadow-sm mt-4">
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STUDENT REVIEW & RE-PRACTICE QUIZ DETAILS MODAL -->
+    <div class="modal fade" id="reviewQuizModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-sage text-white">
+                    <h5 class="modal-title fw-bold" id="reviewQuizTitle"><i class="fa-solid fa-file-lines me-2"></i> Quiz Review & Practice Mode</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 max-h-400 overflow-auto">
+                    <div class="alert alert-success d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <strong id="reviewScoreText">Your Score: 3/3 (100%)</strong>
+                            <p class="mb-0 text-muted small">Answer key verified by course instructor.</p>
+                        </div>
+                        <button id="rePracticeBtn" class="btn btn-warning btn-sm fw-bold">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Practice Again
+                        </button>
+                    </div>
+                    <div id="reviewQuestionsContainer" class="space-y-3">
+                        <!-- Dynamic Review Questions -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN CREATED STUDENT CREDENTIAL SLIP MODAL (PRINTABLE) -->
+    <div class="modal fade" id="studentCredentialSlipModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-paper-plane me-2"></i> Student Account Dispatch Slip</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="printableStudentSlip">
+                    <div class="alert alert-info small mb-3 no-print">
+                        <i class="fa-solid fa-envelope-circle-check me-1"></i> Account info sent to <strong id="slipSentEmail"></strong> automatically.
+                    </div>
+
+                    <!-- Printable Pass Card -->
+                    <div class="border border-2 border-sage rounded-3 p-3 bg-light text-dark">
+                        <div class="text-center border-bottom pb-2 mb-3">
+                            <h5 class="fw-bold text-sage mb-0">Smart Quiz Portal - Login Pass</h5>
+                            <small class="text-muted">Student Official Credential Slip</small>
+                        </div>
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr>
+                                <th class="text-muted w-40">1. Roll Number:</th>
+                                <td class="fw-bold text-sage font-monospace" id="slipRollNo">3IST-104</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Student Name:</th>
+                                <td class="fw-bold" id="slipName">John Doe</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">2. Email Address:</th>
+                                <td id="slipEmail">john@mail.com</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Academic Scope:</th>
+                                <td class="fw-bold text-success" id="slipScope">Third Year - IST</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">3. Initial Password:</th>
+                                <td class="fw-bold text-danger font-monospace" id="slipPass">std12345</td>
+                            </tr>
+                        </table>
+                        <div class="text-center border-top pt-2 mt-3 text-muted border-dashed" style="font-size:11px;">
+                            * Note: Please update your password upon your first dashboard sign-in.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button onclick="printStudentSlip()" class="btn btn-dark btn-sm">
+                        <i class="fa-solid fa-print me-1"></i> Print Slip
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER TEACHER MODAL (ADMIN) -->
+    <div class="modal fade" id="addTeacherModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Register New Faculty Teacher</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="handleAdminAddTeacher(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Teacher Full Name</label>
+                            <input type="text" id="adminTeacherNameInput" required placeholder="Prof. Saw Myat" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Email Address</label>
+                            <input type="email" id="adminTeacherEmailInput" required placeholder="teacher2@smartquiz.com" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Assigned Department</label>
+                            <select id="adminTeacherDeptInput" class="form-select">
+                                <option value="IST Department">IST Department</option>
+                                <option value="CE Department">CE Department</option>
+                                <option value="ECE Department">ECE Department</option>
+                                <option value="PrE Department">PrE Department</option>
+                                <option value="AME Department">AME Department</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Initial Password</label>
+                            <input type="text" id="adminTeacherPassInput" required value="teacher123" class="form-control font-monospace">
+                        </div>
+                        <button type="submit" class="btn btn-sage w-100 fw-bold mt-3">
+                            Create Teacher Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER STUDENT MODAL (ADMIN: 3 SEPARATE INPUTS) -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Register New Student Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="handleAdminAddStudent(event)">
+                        <!-- INPUT 1: ROLL NUMBER -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-sage">1. Roll Number</label>
+                            <input type="text" id="adminRollInput" required placeholder="e.g. 3IST-104" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Student Name</label>
+                            <input type="text" id="adminNameInput" required placeholder="John Smith" class="form-control">
+                        </div>
+                        <!-- INPUT 2: EMAIL ADDRESS -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-sage">2. Student Email Address</label>
+                            <input type="email" id="adminEmailInput" required placeholder="student@mail.com" class="form-control">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Academic Year</label>
+                                <select id="adminYearInput" class="form-select">
+                                    <option value="First Year">First Year</option>
+                                    <option value="Second Year">Second Year</option>
+                                    <option value="Third Year" selected>Third Year</option>
+                                    <option value="Fourth Year">Fourth Year</option>
+                                    <option value="Fifth Year">Fifth Year</option>
+                                    <option value="Sixth Year">Sixth Year</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Academic Major</label>
+                                <select id="adminMajorInput" class="form-select">
+                                    <option value="IST" selected>IST</option>
+                                    <option value="CE">CE</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="PrE">PrE</option>
+                                    <option value="AME">AME</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- INPUT 3: INITIAL PASSWORD -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-sage">3. Initial Password</label>
+                            <input type="text" id="adminPassInput" required value="std12345" class="form-control font-monospace">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold mt-3">
+                            Create Account & Dispatch Slip
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div class="modal fade" id="changePassModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Change Account Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="handleChangePassword(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Current Password</label>
+                            <input type="password" id="oldPassword" required class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">New Password</label>
+                            <input type="password" id="newPassword" required class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold mt-3">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE & EDIT QUIZ MODAL (TEACHER CAN ALSO CREATE PUBLIC PRACTICE) -->
+    <div class="modal fade" id="createQuizModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-sage" id="createQuizModalTitle"><i class="fa-solid fa-plus-circle me-2"></i> Create Quiz Examination</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="handleSaveQuiz(event)" class="space-y-3">
+                        <input type="hidden" id="editingQuizId" value="">
+                        
+                        <!-- QUIZ TYPE SELECTOR (GRADED EXAM VS PUBLIC PRACTICE) -->
+                        <div class="p-3 bg-sage-light rounded-3 border border-sage-subtle mb-3">
+                            <label class="form-label small fw-bold text-sage d-block">Select Quiz Category</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="quizCategoryRadio" id="catExam" value="graded" checked onchange="toggleQuizCategoryFields()">
+                                    <label class="form-check-label fw-semibold" for="catExam">Course Examination (6-Digit Code Required)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="quizCategoryRadio" id="catPublic" value="public" onchange="toggleQuizCategoryFields()">
+                                    <label class="form-check-label fw-semibold" for="catPublic">Public Practice Quiz (Open Access on Homepage)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Quiz Title</label>
+                                <input type="text" id="quizTitleInput" required placeholder="e.g. Midterm DBMS Quiz" class="form-control">
+                            </div>
+                            <div class="col-md-3 scope-field">
+                                <label class="form-label small fw-bold">Target Year</label>
+                                <select id="quizYearInput" class="form-select" onchange="updateQuizSubjectDropdown()">
+                                    <option value="First Year">First Year</option>
+                                    <option value="Second Year">Second Year</option>
+                                    <option value="Third Year" selected>Third Year</option>
+                                    <option value="Fourth Year">Fourth Year</option>
+                                    <option value="Fifth Year">Fifth Year</option>
+                                    <option value="Sixth Year">Sixth Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 scope-field">
+                                <label class="form-label small fw-bold">Target Major</label>
+                                <select id="quizMajorInput" class="form-select" onchange="updateQuizSubjectDropdown()">
+                                    <option value="IST" selected>IST</option>
+                                    <option value="CE">CE</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="PrE">PrE</option>
+                                    <option value="AME">AME</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 scope-field">
+                            <label class="form-label small fw-bold">Subject (Major Curriculum Courses)</label>
+                            <select id="quizSubjectInput" class="form-select">
+                                <!-- Dynamically filled via JS -->
+                            </select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6 scope-field">
+                                <label class="form-label small fw-bold">Start Time Window</label>
+                                <input type="datetime-local" id="quizStartInput" class="form-control">
+                            </div>
+                            <div class="col-md-6 scope-field">
+                                <label class="form-label small fw-bold">End Time Window</label>
+                                <input type="datetime-local" id="quizEndInput" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Overall Time Limit (Minutes)</label>
+                                <input type="number" id="quizOverallTimeInput" value="10" min="1" required class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Question Level Limit (Seconds)</label>
+                                <input type="number" id="quizQuestionTimeInput" value="30" min="5" required class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Question Builder -->
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold">Questions Builder</label>
+                                <button type="button" onclick="addQuestionField()" class="btn btn-outline-sage btn-sm fw-bold">
+                                    + Add Question
+                                </button>
+                            </div>
+                            <div id="quizQuestionsBuilder" class="space-y-3 overflow-auto max-h-300">
+                                <!-- Dynamic question fields -->
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-sage fw-bold">Save & Publish Quiz</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Enhanced Footer Section with Links and Copyright -->
+    <footer class="bg-dark text-white pt-5 pb-3 mt-5 no-print border-top">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-5 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa-solid fa-graduation-cap fs-2 text-emerald"></i>
+                        <span class="fs-4 fw-bold">Smart Quiz System</span>
+                    </div>
+                    <p class="text-secondary small leading-relaxed pe-lg-4">
+                        Comprehensive academic examination and learning management system tailored for engineering and technology major programs. Empowering students and teachers through automated analytics and secure testing.
+                    </p>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="fw-bold text-white mb-3 text-uppercase tracking-wider">Quick Navigation</h6>
+                    <ul class="list-unstyled space-y-2 small">
+                                               <li><a href="#" onclick="navigateToHome()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>Home Portal</a></li>
+                        <li><a href="#practiceSection" onclick="navigateToHome()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>Practice Quizzes</a></li>
+                        <li><a href="#" onclick="showCommunityView()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>Community Chat</a></li>
+                        <li><a href="#featuresSection" onclick="navigateToHome()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>Platform Features</a></li>
+                        <li><a href="#aboutSection" onclick="navigateToHome()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>About Us</a></li>
+                        <li><a href="#contactSection" onclick="navigateToHome()" class="text-secondary text-decoration-none"><i class="fa-solid fa-chevron-right me-2 text-sage"></i>Contact Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <h6 class="fw-bold text-white mb-3 text-uppercase tracking-wider">University Location</h6>
+                    <p class="text-secondary small mb-2"><i class="fa-solid fa-location-dot me-2 text-emerald"></i> University of Technology (Yatanarpon Cyber City)</p>
+                    <p class="text-secondary small mb-2"><i class="fa-solid fa-envelope me-2 text-emerald"></i> support@smartquiz.edu.mm</p>
+                    <p class="text-secondary small"><i class="fa-solid fa-phone me-2 text-emerald"></i> +95 9 123 456 789</p>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-3 text-center">
+                <p class="mb-0 text-secondary small">&copy; 2026 Smart Quiz - University of Technology (Yatanarpon Cyber City)</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Bootstrap 5 JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom External JS -->
+    <script src="index.js"></script>
+</body>
+</html>
+
