@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Attempt } from '@/types';
+import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   Clock,
@@ -11,10 +12,18 @@ import {
   CheckCircle,
   ShieldAlert,
   XCircle,
+  Award,
+  RotateCcw,
+  BookOpen,
+  Layers,
+  History,
+  FileCheck,
 } from 'lucide-react';
+import { ReviewQuizModal } from './Modals/ReviewQuizModal';
 
 export const QuizEngine: React.FC = () => {
-  const { currentActiveQuiz, currentUser, submitAttempt, finishQuiz } = useApp();
+  const router = useRouter();
+  const { currentActiveQuiz, currentUser, submitAttempt, finishQuiz, setReviewQuizId } = useApp();
 
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
@@ -22,6 +31,13 @@ export const QuizEngine: React.FC = () => {
   const [overallSecondsLeft, setOverallSecondsLeft] = useState(0);
   const [questionSecondsLeft, setQuestionSecondsLeft] = useState(0);
   const [cheatingWarningsCount, setCheatingWarningsCount] = useState(0);
+
+  const [completedResult, setCompletedResult] = useState<{
+    score: number;
+    total: number;
+    percentage: number;
+    status: 'submitted' | 'auto_terminated';
+  } | null>(null);
 
   const antiCheatLockRef = useRef(false);
   const isPublicQuiz = currentActiveQuiz?.isPublic ?? true;
@@ -35,11 +51,12 @@ export const QuizEngine: React.FC = () => {
     setCurrentQIndex(0);
     setUserAnswers({});
     setCheatingWarningsCount(0);
+    setCompletedResult(null);
   }, [currentActiveQuiz]);
 
   // Overall Timer Countdown
   useEffect(() => {
-    if (!currentActiveQuiz || overallSecondsLeft <= 0) return;
+    if (!currentActiveQuiz || overallSecondsLeft <= 0 || completedResult) return;
 
     const timer = setInterval(() => {
       setOverallSecondsLeft((prev) => {
@@ -53,11 +70,11 @@ export const QuizEngine: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentActiveQuiz, overallSecondsLeft]);
+  }, [currentActiveQuiz, overallSecondsLeft, completedResult]);
 
   // Question Timer Countdown
   useEffect(() => {
-    if (!currentActiveQuiz || questionSecondsLeft <= 0) return;
+    if (!currentActiveQuiz || questionSecondsLeft <= 0 || completedResult) return;
 
     const qTimer = setInterval(() => {
       setQuestionSecondsLeft((prev) => {
@@ -76,18 +93,18 @@ export const QuizEngine: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(qTimer);
-  }, [currentActiveQuiz, currentQIndex, questionSecondsLeft]);
+  }, [currentActiveQuiz, currentQIndex, questionSecondsLeft, completedResult]);
 
   // Reset question timer on question change
   useEffect(() => {
-    if (currentActiveQuiz) {
+    if (currentActiveQuiz && !completedResult) {
       setQuestionSecondsLeft(currentActiveQuiz.questionTime);
     }
-  }, [currentQIndex, currentActiveQuiz]);
+  }, [currentQIndex, currentActiveQuiz, completedResult]);
 
   // Anti-Cheating Guard Setup (Window Blur & Visibility Change)
   useEffect(() => {
-    if (!currentActiveQuiz || isPublicQuiz) return;
+    if (!currentActiveQuiz || isPublicQuiz || completedResult) return;
 
     const handleViolation = () => {
       if (antiCheatLockRef.current) return;
@@ -126,7 +143,7 @@ export const QuizEngine: React.FC = () => {
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [currentActiveQuiz, isPublicQuiz]);
+  }, [currentActiveQuiz, isPublicQuiz, completedResult]);
 
   if (!currentActiveQuiz) return null;
 
@@ -138,20 +155,24 @@ export const QuizEngine: React.FC = () => {
   };
 
   const terminateCheating = () => {
-    if (currentUser.rollNo) {
-      const attempt: Attempt = {
-        quizId: currentActiveQuiz.id,
-        studentRoll: currentUser.rollNo,
-        studentName: currentUser.name,
-        score: 0,
-        total: currentActiveQuiz.questions.length,
-        status: 'auto_terminated',
-        submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16) + ' (Auto-Terminated)',
-        answers: userAnswers,
-      };
-      submitAttempt(attempt);
-    }
-    finishQuiz();
+    const attempt: Attempt = {
+      quizId: currentActiveQuiz.id,
+      studentRoll: currentUser.rollNo || 'GUEST',
+      studentName: currentUser.name,
+      score: 0,
+      total: currentActiveQuiz.questions.length,
+      status: 'auto_terminated',
+      submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16) + ' (Auto-Terminated)',
+      answers: userAnswers,
+    };
+    submitAttempt(attempt);
+
+    setCompletedResult({
+      score: 0,
+      total: currentActiveQuiz.questions.length,
+      percentage: 0,
+      status: 'auto_terminated',
+    });
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -164,7 +185,7 @@ export const QuizEngine: React.FC = () => {
   const handleExitExam = () => {
     const confirmExit = window.confirm('Are you sure you want to exit this examination? Progress will be lost if not submitted.');
     if (confirmExit) {
-      finishQuiz();
+      finishQuiz('/student/practice');
     }
   };
 
@@ -176,22 +197,36 @@ export const QuizEngine: React.FC = () => {
       if (userAns === correctAns) score++;
     });
 
-    if (currentUser.rollNo || currentUser.role === 'student') {
-      const attempt: Attempt = {
-        quizId: currentActiveQuiz.id,
-        studentRoll: currentUser.rollNo || 'GUEST',
-        studentName: currentUser.name,
-        score,
-        total: currentActiveQuiz.questions.length,
-        status: 'submitted',
-        submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        answers: userAnswers,
-      };
-      submitAttempt(attempt);
-    }
+    const attempt: Attempt = {
+      quizId: currentActiveQuiz.id,
+      studentRoll: currentUser.rollNo || 'GUEST',
+      studentName: currentUser.name,
+      score,
+      total: currentActiveQuiz.questions.length,
+      status: 'submitted',
+      submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      answers: userAnswers,
+    };
 
-    alert(`Examination Complete!\n\nYour Score: ${score} / ${currentActiveQuiz.questions.length}`);
-    finishQuiz();
+    // Save to Quiz History
+    submitAttempt(attempt);
+
+    // Show Result Pop-up
+    setCompletedResult({
+      score,
+      total: currentActiveQuiz.questions.length,
+      percentage: Math.round((score / currentActiveQuiz.questions.length) * 100),
+      status: 'submitted',
+    });
+  };
+
+  const handleRetakeQuiz = () => {
+    setUserAnswers({});
+    setCurrentQIndex(0);
+    setOverallSecondsLeft(currentActiveQuiz.overallTime * 60);
+    setQuestionSecondsLeft(currentActiveQuiz.questionTime);
+    setCheatingWarningsCount(0);
+    setCompletedResult(null);
   };
 
   const formatMinSec = (totalSeconds: number) => {
@@ -203,6 +238,91 @@ export const QuizEngine: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-6">
       
+      {/* Quiz Completion Result Pop-up Modal */}
+      {completedResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl max-w-lg w-full p-8 shadow-2xl space-y-6 text-center">
+            
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-300 dark:border-emerald-700">
+              <Award className="w-9 h-9" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 text-xs font-bold">
+                <FileCheck className="w-4 h-4 text-emerald-600" />
+                <span>Result Saved to History</span>
+              </div>
+
+              <h2 className="text-2xl font-black text-stone-900 dark:text-white">
+                {completedResult.status === 'auto_terminated'
+                  ? 'Exam Terminated'
+                  : completedResult.percentage >= 50
+                  ? 'Congratulations! Examination Passed'
+                  : 'Quiz Complete - Needs Practice'}
+              </h2>
+
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                {currentActiveQuiz.title} ({currentActiveQuiz.subject})
+              </p>
+            </div>
+
+            {/* Score Stats Box */}
+            <div className="p-6 bg-stone-50 dark:bg-stone-800/80 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-3">
+              <div className="text-4xl font-black text-stone-900 dark:text-white">
+                {completedResult.score} / {completedResult.total}
+              </div>
+              <div className="inline-block px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-sage-100 dark:bg-sage-900 text-sage-800 dark:text-sage-200">
+                Percentage Score: {completedResult.percentage}%
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-stone-200 dark:border-stone-700">
+                <div>
+                  <span className="text-stone-400 block font-medium">Correct Answers</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{completedResult.score}</span>
+                </div>
+                <div>
+                  <span className="text-stone-400 block font-medium">Incorrect</span>
+                  <span className="font-bold text-red-500 text-sm">{completedResult.total - completedResult.score}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Choice Buttons */}
+            <div className="space-y-2.5 pt-2">
+              <button
+                onClick={() => {
+                  setReviewQuizId(currentActiveQuiz.id);
+                }}
+                className="w-full btn-outline-sage py-3 text-xs font-bold flex items-center justify-center gap-2 shadow-xs"
+              >
+                <RotateCcw className="w-4 h-4 text-sage-600" />
+                <span>Review Correct Answers</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleRetakeQuiz}
+                  className="btn-sage py-3 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Retake Quiz</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    finishQuiz('/student/practice');
+                  }}
+                  className="bg-stone-800 hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white py-3 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Other Quizzes</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Anti-Cheating Warning Banner */}
       {!isPublicQuiz && (
         <div className="p-4 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 rounded-2xl flex items-center gap-3 text-red-700 dark:text-red-300 text-xs font-semibold">
@@ -347,6 +467,8 @@ export const QuizEngine: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ReviewQuizModal />
 
     </div>
   );

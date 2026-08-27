@@ -6,18 +6,19 @@ import { useApp } from '@/context/AppContext';
 import { TeacherDashboard } from '@/components/TeacherDashboard';
 
 export default function TeacherPage() {
-  const { currentUser, setLoginModalOpen } = useApp();
+  const { currentUser, setLoginModalOpen, isMounted } = useApp();
   const router = useRouter();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('sq_user');
-    const role = currentUser.role !== 'guest' ? currentUser.role : (savedUser ? JSON.parse(savedUser).role : 'guest');
+    if (!isMounted) return;
 
-    if (role !== 'teacher') {
-      if (role === 'guest') setLoginModalOpen(true);
+    if (currentUser.role !== 'teacher') {
+      if (currentUser.role === 'guest') setLoginModalOpen(true);
       router.push('/');
     }
-  }, [currentUser, router, setLoginModalOpen]);
+  }, [currentUser, isMounted, router, setLoginModalOpen]);
+
+  if (!isMounted) return null;
 
   if (currentUser.role !== 'teacher') {
     return (

@@ -233,90 +233,123 @@ export const TeacherDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Stats Cards */}
+            {/* Unified Stats & Student Scores Roster */}
             {(() => {
               const quizAttempts = attempts.filter((a) => a.quizId === selectedQuiz.id);
-              const targetScopeStudents = students.filter(
-                (s) => (selectedQuiz.major === 'All' || selectedQuiz.major === s.major) && (selectedQuiz.year === 'All' || selectedQuiz.year === s.year)
+              const scopeStudents = students.filter(
+                (s) =>
+                  (selectedQuiz.major === 'All' || selectedQuiz.major === s.major) &&
+                  (selectedQuiz.year === 'All' || selectedQuiz.year === s.year)
               );
 
+              // Combine actual attempt submitters and scope students
+              const rosterItemsMap = new Map<
+                string,
+                { rollNo: string; name: string; status: 'submitted' | 'pending'; score?: number; total?: number; submittedAt?: string }
+              >();
+
+              // Add all submitters first
+              quizAttempts.forEach((att) => {
+                const key = att.studentRoll || att.studentName;
+                rosterItemsMap.set(key, {
+                  rollNo: att.studentRoll || 'STUDENT',
+                  name: att.studentName,
+                  status: 'submitted',
+                  score: att.score,
+                  total: att.total,
+                  submittedAt: att.submittedAt,
+                });
+              });
+
+              // Add scope students who haven't submitted yet
+              scopeStudents.forEach((std) => {
+                if (!rosterItemsMap.has(std.rollNo)) {
+                  rosterItemsMap.set(std.rollNo, {
+                    rollNo: std.rollNo,
+                    name: std.name,
+                    status: 'pending',
+                  });
+                }
+              });
+
+              const rosterList = Array.from(rosterItemsMap.values());
               const submittedCount = quizAttempts.length;
-              const pendingCount = Math.max(0, targetScopeStudents.length - submittedCount);
+              const pendingCount = Math.max(0, rosterList.length - submittedCount);
               const totalScoreSum = quizAttempts.reduce((acc, curr) => acc + (curr.score / curr.total) * 100, 0);
               const avgPct = submittedCount > 0 ? Math.round(totalScoreSum / submittedCount) : 0;
 
               return (
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-2.5 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800">
-                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-sage-700 dark:text-sage-300 block truncate">Submitted</span>
-                    <p className="text-xl font-black text-sage-800 dark:text-sage-200 mt-0.5">{submittedCount}</p>
+                <>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="p-2.5 rounded-xl bg-sage-50 dark:bg-sage-950/60 border border-sage-200 dark:border-sage-800">
+                      <span className="text-[8px] font-extrabold uppercase tracking-wider text-sage-700 dark:text-sage-300 block truncate">Submitted</span>
+                      <p className="text-xl font-black text-sage-800 dark:text-sage-200 mt-0.5">{submittedCount}</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/60">
+                      <span className="text-[8px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300 block truncate">Pending</span>
+                      <p className="text-xl font-black text-amber-800 dark:text-amber-200 mt-0.5">{pendingCount}</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/60">
+                      <span className="text-[8px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block truncate">Class Avg</span>
+                      <p className="text-xl font-black text-emerald-800 dark:text-emerald-200 mt-0.5">{avgPct}%</p>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/60">
-                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300 block truncate">Pending</span>
-                    <p className="text-xl font-black text-amber-800 dark:text-amber-200 mt-0.5">{pendingCount}</p>
+
+                  {/* Student Scores Roster */}
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-stone-900 dark:text-white text-[11px]">
+                      Student Submission History (`submitted` / `pending`)
+                    </h4>
+                    <div className="overflow-x-auto border border-stone-200 dark:border-stone-800 rounded-xl">
+                      <table className="w-full text-left text-[11px]">
+                        <thead className="bg-stone-100 dark:bg-stone-900 text-stone-500 font-bold border-b border-stone-200 dark:border-stone-800">
+                          <tr>
+                            <th className="py-2 px-2.5">Roll No</th>
+                            <th className="py-2 px-2.5">Name</th>
+                            <th className="py-2 px-2.5">Status</th>
+                            <th className="py-2 px-2.5">Score</th>
+                            <th className="py-2 px-2.5">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-200 dark:divide-stone-800 text-stone-700 dark:text-stone-300">
+                          {rosterList.length > 0 ? (
+                            rosterList.map((item, idx) => (
+                              <tr key={idx} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/30">
+                                <td className="py-2 px-2.5 font-mono font-bold text-[10px]">{item.rollNo}</td>
+                                <td className="py-2 px-2.5 font-bold truncate max-w-[90px]">{item.name}</td>
+                                <td className="py-2 px-2.5">
+                                  {item.status === 'submitted' ? (
+                                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
+                                      Submitted
+                                    </span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[9px]">
+                                      Pending
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2 px-2.5 font-bold">
+                                  {item.status === 'submitted' ? `${item.score}/${item.total}` : '-'}
+                                </td>
+                                <td className="py-2 px-2.5 text-stone-400 font-mono text-[9px] truncate max-w-[80px]">
+                                  {item.submittedAt || '-'}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="py-6 text-center text-stone-400 text-xs">
+                                No student submissions or roster records for this quiz yet.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/60">
-                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block truncate">Class Avg</span>
-                    <p className="text-xl font-black text-emerald-800 dark:text-emerald-200 mt-0.5">{avgPct}%</p>
-                  </div>
-                </div>
+                </>
               );
             })()}
-
-            {/* Student Scores Roster */}
-            <div className="space-y-2">
-              <h4 className="font-bold text-stone-900 dark:text-white text-[11px]">
-                Enrolled Student Roster (`submitted` / `pending`)
-              </h4>
-              <div className="overflow-x-auto border border-stone-200 dark:border-stone-800 rounded-xl">
-                <table className="w-full text-left text-[11px]">
-                  <thead className="bg-stone-100 dark:bg-stone-900 text-stone-500 font-bold border-b border-stone-200 dark:border-stone-800">
-                    <tr>
-                      <th className="py-2 px-2.5">Roll No</th>
-                      <th className="py-2 px-2.5">Name</th>
-                      <th className="py-2 px-2.5">Status</th>
-                      <th className="py-2 px-2.5">Score</th>
-                      <th className="py-2 px-2.5">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-200 dark:divide-stone-800 text-stone-700 dark:text-stone-300">
-                    {students
-                      .filter(
-                        (s) =>
-                          (selectedQuiz.major === 'All' || selectedQuiz.major === s.major) &&
-                          (selectedQuiz.year === 'All' || selectedQuiz.year === s.year)
-                      )
-                      .map((std) => {
-                        const att = attempts.find((a) => a.quizId === selectedQuiz.id && a.studentRoll === std.rollNo);
-
-                        return (
-                          <tr key={std.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/30">
-                            <td className="py-2 px-2.5 font-mono font-bold text-[10px]">{std.rollNo}</td>
-                            <td className="py-2 px-2.5 font-bold truncate max-w-[90px]">{std.name}</td>
-                            <td className="py-2 px-2.5">
-                              {att ? (
-                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                                  Submitted
-                                </span>
-                              ) : (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[9px]">
-                                  Pending
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-2 px-2.5 font-bold">
-                              {att ? `${att.score}/${att.total}` : '-'}
-                            </td>
-                            <td className="py-2 px-2.5 text-stone-400 font-mono text-[9px] truncate max-w-[80px]">
-                              {att ? att.submittedAt : '-'}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
           </div>
         )}

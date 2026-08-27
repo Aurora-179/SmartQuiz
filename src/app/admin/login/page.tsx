@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
           </h1>
 
           <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed max-w-xs mx-auto">
-            Authorized administrative personnel login for faculty registration, account management, and system auditing.
+            Authorized administrative personnel login for teacher & student account creation, management, and system auditing.
           </p>
         </div>
 

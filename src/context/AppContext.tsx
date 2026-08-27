@@ -21,14 +21,24 @@ import {
   initialNotifications,
   initialChatMessages,
 } from '@/lib/initialData';
+import {
+  fetchDashboardData,
+  loginUser,
+  createQuiz,
+  submitQuizAttempt,
+  sendChatMessageApi,
+  toggleStudentStatusApi,
+  changePasswordApi,
+} from '@/lib/api';
 
 interface AppContextType {
+  isMounted: boolean;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   activeView: 'home' | 'community' | 'dashboard' | 'quiz';
   setActiveView: (view: 'home' | 'community' | 'dashboard' | 'quiz') => void;
   currentUser: User;
-  login: (role: Role, credentials: { rollNo?: string; email?: string; pass?: string }) => boolean;
+  login: (role: Role, credentials: { rollNo?: string; email?: string; pass?: string }) => Promise<boolean> | boolean;
   logout: () => void;
   quizzes: Quiz[];
   addQuiz: (quiz: Omit<Quiz, 'id'>) => Quiz;
@@ -46,7 +56,7 @@ interface AppContextType {
   pinChatMessage: (id: number) => void;
   currentActiveQuiz: Quiz | null;
   startQuiz: (quiz: Quiz) => void;
-  finishQuiz: () => void;
+  finishQuiz: (targetRoute?: string) => void;
   reviewQuizId: number | null;
   setReviewQuizId: (id: number | null) => void;
   credentialSlipStudent: StudentAccount | null;
@@ -76,14 +86,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [attempts, setAttempts] = useState<Attempt[]>(initialAttempts);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
-
   const [currentActiveQuiz, setCurrentActiveQuiz] = useState<Quiz | null>(null);
+
+  const [isMounted, setIsMounted] = useState(false);
   const [reviewQuizId, setReviewQuizId] = useState<number | null>(null);
   const [credentialSlipStudent, setCredentialSlipStudent] = useState<StudentAccount | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
 
-  // Sync state with LocalStorage on client side
+  // Sync state with LocalStorage and attempt Java Backend Data Hydration
   useEffect(() => {
+    setIsMounted(true);
+
     const storedTheme = (localStorage.getItem('sq_theme') as 'light' | 'dark') || 'light';
     setTheme(storedTheme);
     document.documentElement.classList.toggle('dark', storedTheme === 'dark');
@@ -98,28 +111,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const savedQuizzes = localStorage.getItem('sq_quizzes');
-    if (savedQuizzes) setQuizzes(JSON.parse(savedQuizzes));
+    if (savedQuizzes) {
+      try { setQuizzes(JSON.parse(savedQuizzes)); } catch (e) {}
+    }
 
     const savedStudents = localStorage.getItem('sq_students');
-    if (savedStudents) setStudents(JSON.parse(savedStudents));
+    if (savedStudents) {
+      try { setStudents(JSON.parse(savedStudents)); } catch (e) {}
+    }
 
     const savedTeachers = localStorage.getItem('sq_teachers');
-    if (savedTeachers) setTeachers(JSON.parse(savedTeachers));
+    if (savedTeachers) {
+      try { setTeachers(JSON.parse(savedTeachers)); } catch (e) {}
+    }
 
     const savedAttempts = localStorage.getItem('sq_attempts');
-    if (savedAttempts) setAttempts(JSON.parse(savedAttempts));
+    if (savedAttempts) {
+      try { setAttempts(JSON.parse(savedAttempts)); } catch (e) {}
+    }
 
     const savedChat = localStorage.getItem('sq_chat');
-    if (savedChat) setChatMessages(JSON.parse(savedChat));
+    if (savedChat) {
+      try { setChatMessages(JSON.parse(savedChat)); } catch (e) {}
+    }
 
     const savedActiveQuiz = localStorage.getItem('sq_active_quiz');
     if (savedActiveQuiz) {
-      try {
-        setCurrentActiveQuiz(JSON.parse(savedActiveQuiz));
-      } catch (e) {
-        console.error('Failed to parse saved active quiz', e);
-      }
+      try { setCurrentActiveQuiz(JSON.parse(savedActiveQuiz)); } catch (e) {}
     }
+
+    // Try fetching live data from Java Backend
+    fetchDashboardData().then(backendData => {
+      if (backendData) {
+        if (backendData.quizzes && backendData.quizzes.length > 0) {
+          setQuizzes(backendData.quizzes);
+        }
+        if (backendData.students && backendData.students.length > 0) {
+          setStudents(backendData.students);
+        }
+        if (backendData.teachers && backendData.teachers.length > 0) {
+          setTeachers(backendData.teachers);
+        }
+        if (backendData.chatMessages && backendData.chatMessages.length > 0) {
+          setChatMessages(backendData.chatMessages);
+        }
+      }
+    });
   }, []);
 
   // Compute activeView from current pathname
@@ -154,11 +191,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const login = (role: Role, { rollNo, email, pass }: { rollNo?: string; email?: string; pass?: string }) => {
     let loggedUser: User | null = null;
 
+    // Check client state first
     if (role === 'student') {
       const found = students.find(s => s.rollNo === rollNo && s.email === email && s.pass === pass);
       if (found) {
         if (found.status !== 'approved') {
-          alert('Your registration is pending Admin approval or suspended!');
+          alert('Your account is pending Admin approval or suspended!');
           return false;
         }
         loggedUser = {
@@ -203,8 +241,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       else if (loggedUser.role === 'teacher') router.push('/teacher');
       else if (loggedUser.role === 'admin') router.push('/admin');
 
+      // Also trigger API call in background
+      loginUser(role, { rollNo, email, pass });
       return true;
     }
+
+    // Try API login
+    loginUser(role, { rollNo, email, pass }).then(apiUser => {
+      if (apiUser) {
+        setCurrentUser(apiUser);
+        localStorage.setItem('sq_user', JSON.stringify(apiUser));
+        setLoginModalOpen(false);
+
+        if (apiUser.role === 'student') router.push('/student');
+        else if (apiUser.role === 'teacher') router.push('/teacher');
+        else if (apiUser.role === 'admin') router.push('/admin');
+      }
+    });
 
     return false;
   };
@@ -222,6 +275,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const changeUserPassword = (newPass: string) => {
+    if (currentUser.id) {
+      changePasswordApi(currentUser.id, newPass);
+    }
     if (currentUser.role === 'student' && currentUser.id) {
       setStudents(prev => {
         const next = prev.map(s => s.id === currentUser.id ? { ...s, pass: newPass } : s);
@@ -249,6 +305,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('sq_quizzes', JSON.stringify(next));
       return next;
     });
+
+    // Send to Java API in background
+    createQuiz(quizData);
 
     if (!newQuiz.isPublic && newQuiz.code) {
       const newNotif: Notification = {
@@ -285,15 +344,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleStudentStatus = (id: number) => {
+    let nextStatus: 'approved' | 'suspended' = 'suspended';
     setStudents(prev => {
       const next: StudentAccount[] = prev.map(s => {
         if (s.id !== id) return s;
-        const newStatus: StudentAccount['status'] = s.status === 'approved' ? 'suspended' : 'approved';
-        return { ...s, status: newStatus };
+        nextStatus = s.status === 'approved' ? 'suspended' : 'approved';
+        return { ...s, status: nextStatus };
       });
       localStorage.setItem('sq_students', JSON.stringify(next));
       return next;
     });
+    // Send to Java Backend API
+    toggleStudentStatusApi(id, nextStatus);
   };
 
   const addTeacher = (teacherData: Omit<TeacherAccount, 'id'>) => {
@@ -314,6 +376,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('sq_attempts', JSON.stringify(next));
       return next;
     });
+    // Send to Java Backend API
+    submitQuizAttempt(newAttempt);
   };
 
   const sendChatMessage = (messageText: string, isAnnouncement = false) => {
@@ -325,7 +389,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: currentUser.role,
       message: messageText,
       timestamp: timeStr,
-      isAnnouncement: isAnnouncement && (currentUser.role === 'admin' || currentUser.role === 'teacher'),
+      isAnnouncement: isAnnouncement && currentUser.role === 'admin',
       isPinned: false,
     };
     setChatMessages(prev => {
@@ -333,11 +397,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('sq_chat', JSON.stringify(next));
       return next;
     });
+    // Send to Java Backend API
+    sendChatMessageApi(currentUser.name, currentUser.role, messageText, isAnnouncement);
   };
+
 
   const pinChatMessage = (id: number) => {
     setChatMessages(prev => {
-      const next = prev.map(m => ({ ...m, isPinned: m.id === id }));
+      const next = prev.map(m => (m.id === id ? { ...m, isPinned: !m.isPinned } : m));
       localStorage.setItem('sq_chat', JSON.stringify(next));
       return next;
     });
@@ -349,18 +416,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     router.push(`/quiz/${quiz.id}`);
   };
 
-  const finishQuiz = () => {
+  const finishQuiz = (targetRoute?: string) => {
     setCurrentActiveQuiz(null);
     localStorage.removeItem('sq_active_quiz');
-    if (currentUser.role === 'student') router.push('/student');
-    else if (currentUser.role === 'teacher') router.push('/teacher');
-    else if (currentUser.role === 'admin') router.push('/admin');
-    else router.push('/');
+    if (targetRoute) {
+      router.push(targetRoute);
+    } else if (currentUser.role === 'student') {
+      router.push('/student/practice');
+    } else if (currentUser.role === 'teacher') {
+      router.push('/teacher');
+    } else if (currentUser.role === 'admin') {
+      router.push('/admin');
+    } else {
+      router.push('/');
+    }
   };
 
   return (
     <AppContext.Provider
       value={{
+        isMounted,
         theme,
         toggleTheme,
         activeView,

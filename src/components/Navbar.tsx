@@ -28,6 +28,7 @@ export const Navbar: React.FC = () => {
     toggleTheme,
     currentUser,
     logout,
+    isMounted,
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,7 +53,7 @@ export const Navbar: React.FC = () => {
     return null;
   }
 
-  const isLoggedIn = currentUser.role !== 'guest';
+  const isLoggedIn = isMounted && currentUser.role !== 'guest';
 
   // Role-specific home brand target link
   const brandHomeLink =
@@ -93,25 +94,13 @@ export const Navbar: React.FC = () => {
           {isLoggedIn && (
             <div className="hidden md:flex items-center space-x-1 text-sm font-medium">
               
-              {/* Show Home & Practice Catalog ONLY for Students */}
+              {/* Role: Student Links */}
               {currentUser.role === 'student' && (
                 <>
                   <Link
-                    href="/"
+                    href="/student/practice"
                     className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                      pathname === '/'
-                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
-                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                    }`}
-                  >
-                    <HomeIcon className="w-4 h-4 text-sage-600" />
-                    Home
-                  </Link>
-
-                  <Link
-                    href="/practice"
-                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                      pathname === '/practice'
+                      pathname === '/student/practice' || pathname === '/practice'
                         ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
                         : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
                     }`}
@@ -119,63 +108,77 @@ export const Navbar: React.FC = () => {
                     <BookOpen className="w-4 h-4 text-sage-600" />
                     Practice Catalog
                   </Link>
+
+                  <Link
+                    href="/student/community"
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      pathname === '/student/community' || pathname === '/community'
+                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
+                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-sage-600" />
+                    Community Hub
+                  </Link>
                 </>
               )}
 
-              {/* Role-scoped Community Hub Link */}
-              <Link
-                href={communityLink}
-                className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                  pathname === communityLink || pathname === '/community'
-                    ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
-                    : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 text-sage-600" />
-                Community Hub
-              </Link>
-
-              {/* Role Dashboard Link */}
+              {/* Role: Teacher Links */}
               {currentUser.role === 'teacher' && (
-                <Link
-                  href="/teacher"
-                  className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                    pathname === '/teacher'
-                      ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
-                      : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                  }`}
-                >
-                  <LayoutDashboard className="w-4 h-4 text-sage-600" />
-                  Teacher Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/teacher"
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      pathname === '/teacher'
+                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
+                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-sage-600" />
+                    Teacher Dashboard
+                  </Link>
+
+                  <Link
+                    href="/teacher/community"
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      pathname === '/teacher/community' || pathname === '/community'
+                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
+                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-sage-600" />
+                    Community Hub
+                  </Link>
+                </>
               )}
 
-              {currentUser.role === 'student' && (
-                <Link
-                  href="/student"
-                  className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                    pathname === '/student'
-                      ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
-                      : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                  }`}
-                >
-                  <LayoutDashboard className="w-4 h-4 text-sage-600" />
-                  Student Dashboard
-                </Link>
-              )}
-
+              {/* Role: Admin Links */}
               {currentUser.role === 'admin' && (
-                <Link
-                  href="/admin"
-                  className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                    pathname === '/admin'
-                      ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
-                      : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                  }`}
-                >
-                  <LayoutDashboard className="w-4 h-4 text-sage-600" />
-                  Admin Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/admin"
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      pathname === '/admin'
+                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
+                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-sage-600" />
+                    Admin Dashboard
+                  </Link>
+
+                  <Link
+                    href="/admin/community"
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      pathname === '/admin/community' || pathname === '/community'
+                        ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 dark:text-sage-300 font-bold'
+                        : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-sage-600" />
+                    Community Hub
+                  </Link>
+                </>
               )}
             </div>
           )}
@@ -278,76 +281,76 @@ export const Navbar: React.FC = () => {
           {currentUser.role === 'student' && (
             <>
               <Link
-                href="/"
+                href="/student/practice"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-                  pathname === '/' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
-                }`}
-              >
-                <HomeIcon className="w-4 h-4 text-sage-600" />
-                Home
-              </Link>
-              <Link
-                href="/practice"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-                  pathname === '/practice' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                  pathname === '/student/practice' || pathname === '/practice' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
                 }`}
               >
                 <BookOpen className="w-4 h-4 text-sage-600" />
                 Practice Catalog
               </Link>
+              <Link
+                href="/student/community"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
+                  pathname === '/student/community' || pathname === '/community' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4 text-sage-600" />
+                Community Hub
+              </Link>
             </>
           )}
 
-          <Link
-            href={communityLink}
-            onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-              pathname === communityLink ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 text-sage-600" />
-            Community Hub
-          </Link>
-
           {currentUser.role === 'teacher' && (
-            <Link
-              href="/teacher"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-                pathname === '/teacher' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 text-sage-600" />
-              Teacher Dashboard
-            </Link>
-          )}
-
-          {currentUser.role === 'student' && (
-            <Link
-              href="/student"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-                pathname === '/student' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 text-sage-600" />
-              Student Dashboard
-            </Link>
+            <>
+              <Link
+                href="/teacher"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
+                  pathname === '/teacher' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4 text-sage-600" />
+                Teacher Dashboard
+              </Link>
+              <Link
+                href="/teacher/community"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
+                  pathname === '/teacher/community' || pathname === '/community' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4 text-sage-600" />
+                Community Hub
+              </Link>
+            </>
           )}
 
           {currentUser.role === 'admin' && (
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
-                pathname === '/admin' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 text-sage-600" />
-              Admin Dashboard
-            </Link>
+            <>
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
+                  pathname === '/admin' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4 text-sage-600" />
+                Admin Dashboard
+              </Link>
+              <Link
+                href="/admin/community"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${
+                  pathname === '/admin/community' || pathname === '/community' ? 'bg-sage-50 text-sage-700 dark:bg-sage-950 font-bold' : 'text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4 text-sage-600" />
+                Community Hub
+              </Link>
+            </>
           )}
         </div>
       )}

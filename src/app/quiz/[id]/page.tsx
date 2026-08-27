@@ -10,10 +10,19 @@ import Link from 'next/link';
 export default function QuizTakingPage() {
   const params = useParams();
   const router = useRouter();
-  const { quizzes, currentActiveQuiz, startQuiz } = useApp();
+  const { quizzes, currentActiveQuiz, startQuiz, currentUser } = useApp();
   const [loading, setLoading] = useState(true);
 
   const quizId = params?.id ? Number(params.id) : null;
+
+  const dashboardLink =
+    currentUser.role === 'teacher'
+      ? '/teacher'
+      : currentUser.role === 'student'
+      ? '/student'
+      : currentUser.role === 'admin'
+      ? '/admin'
+      : '/';
 
   useEffect(() => {
     if (!quizId) {
@@ -21,17 +30,15 @@ export default function QuizTakingPage() {
       return;
     }
 
-    if (currentActiveQuiz && currentActiveQuiz.id === quizId) {
-      setLoading(false);
-      return;
-    }
-
-    const foundQuiz = quizzes.find((q) => q.id === quizId);
-    if (foundQuiz) {
-      startQuiz(foundQuiz);
+    if (!currentActiveQuiz || currentActiveQuiz.id !== quizId) {
+      const foundQuiz = quizzes.find((q) => q.id === quizId);
+      if (foundQuiz) {
+        startQuiz(foundQuiz);
+      }
     }
     setLoading(false);
-  }, [quizId, currentActiveQuiz, quizzes, startQuiz]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizId]);
 
   if (loading) {
     return (
@@ -52,8 +59,8 @@ export default function QuizTakingPage() {
         <p className="text-stone-500 text-sm">
           The requested examination or practice quiz session could not be located or has expired.
         </p>
-        <Link href="/" className="btn-sage inline-flex items-center gap-2 text-xs">
-          <ArrowLeft className="w-4 h-4" /> Return to Home
+        <Link href={dashboardLink} className="btn-sage inline-flex items-center gap-2 text-xs">
+          <ArrowLeft className="w-4 h-4" /> Return to Dashboard
         </Link>
       </div>
     );

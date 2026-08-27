@@ -38,7 +38,7 @@ export const AdminDashboard: React.FC = () => {
             Admin Control Panel
           </h1>
           <p className="text-xs text-stone-500 dark:text-stone-400">
-            Manage student & teacher account records, assign department credentials, and dispatch printable registration slips.
+            Manage student & teacher account records, assign department credentials, and dispatch printable credential slips.
           </p>
         </div>
 
@@ -47,13 +47,13 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setAddTeacherOpen(true)}
             className="btn-outline-sage text-xs py-2 px-3 flex items-center gap-1.5 font-bold"
           >
-            <Building className="w-4 h-4" /> Register Teacher
+            <Building className="w-4 h-4" /> Create Teacher Account
           </button>
           <button
             onClick={() => setAddStudentOpen(true)}
             className="btn-sage text-xs py-2 px-4 flex items-center gap-1.5 font-bold shadow-md"
           >
-            <UserPlus className="w-4 h-4" /> Register Student
+            <UserPlus className="w-4 h-4" /> Create Student Account
           </button>
         </div>
       </div>
@@ -64,7 +64,7 @@ export const AdminDashboard: React.FC = () => {
           <div>
             <h2 className="font-bold text-stone-900 dark:text-white text-base flex items-center gap-2">
               <Building className="w-5 h-5 text-sage-600" />
-              <span>Registered Faculty Teachers</span>
+              <span>Faculty Teacher Accounts</span>
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400">
               Assigned department faculty teachers authorized to host course examinations.
@@ -105,7 +105,7 @@ export const AdminDashboard: React.FC = () => {
           <div>
             <h2 className="font-bold text-stone-900 dark:text-white text-base flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-sage-600" />
-              <span>Registered Student Accounts</span>
+              <span>Student Accounts</span>
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400">
               Authorized students with pre-enrolled scope & credentials.
@@ -154,16 +154,20 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <Printer className="w-3.5 h-3.5" /> Slip
                     </button>
-                    <button
-                      onClick={() => toggleStudentStatus(std.id)}
-                      className={`p-1.5 rounded-lg font-bold inline-flex items-center gap-1 text-xs ${
+                    <select
+                      value={std.status}
+                      onChange={(e) => {
+                        if (e.target.value !== std.status) toggleStudentStatus(std.id);
+                      }}
+                      className={`p-1.5 rounded-lg font-bold outline-none cursor-pointer text-xs ${
                         std.status === 'approved'
-                          ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300'
-                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300'
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                          : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
                       }`}
                     >
-                      {std.status === 'approved' ? 'Suspend' : 'Approve'}
-                    </button>
+                      <option value="approved" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-300">Approved</option>
+                      <option value="suspended" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-300">Suspended</option>
+                    </select>
                   </td>
                 </tr>
               ))}

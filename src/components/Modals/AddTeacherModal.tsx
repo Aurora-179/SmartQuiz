@@ -29,7 +29,7 @@ export const AddTeacherModal: React.FC<Props> = ({ isOpen, onClose }) => {
       pass: pass.trim(),
     });
 
-    alert(`Faculty Teacher "${created.name}" registered successfully!`);
+    alert(`Teacher account for "${created.name}" created successfully!`);
     onClose();
     setName('');
     setEmail('');
@@ -51,7 +51,7 @@ export const AddTeacherModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <Building className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">
-            Register Faculty Teacher
+            Create Teacher Account
           </h2>
           <p className="text-xs text-stone-500 dark:text-stone-400">
             Authorize department faculty teacher accounts for hosting examinations.

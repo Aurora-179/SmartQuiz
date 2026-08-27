@@ -6,19 +6,19 @@ import { useApp } from '@/context/AppContext';
 import { StudentDashboard } from '@/components/StudentDashboard';
 
 export default function StudentPage() {
-  const { currentUser, setLoginModalOpen } = useApp();
+  const { currentUser, setLoginModalOpen, isMounted } = useApp();
   const router = useRouter();
 
   useEffect(() => {
-    // Check role after state hydration
-    const savedUser = localStorage.getItem('sq_user');
-    const role = currentUser.role !== 'guest' ? currentUser.role : (savedUser ? JSON.parse(savedUser).role : 'guest');
-    
-    if (role !== 'student') {
-      if (role === 'guest') setLoginModalOpen(true);
+    if (!isMounted) return;
+
+    if (currentUser.role !== 'student') {
+      if (currentUser.role === 'guest') setLoginModalOpen(true);
       router.push('/');
     }
-  }, [currentUser, router, setLoginModalOpen]);
+  }, [currentUser, isMounted, router, setLoginModalOpen]);
+
+  if (!isMounted) return null;
 
   if (currentUser.role !== 'student') {
     return (

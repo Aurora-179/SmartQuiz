@@ -33,7 +33,7 @@ export const AddStudentModal: React.FC<Props> = ({ isOpen, onClose }) => {
       pass: pass.trim(),
     });
 
-    alert(`Student "${created.name}" registered successfully!`);
+    alert(`Student account for "${created.name}" created successfully!`);
     setCredentialSlipStudent(created);
     onClose();
     setRollNo('');
@@ -57,7 +57,7 @@ export const AddStudentModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <UserPlus className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">
-            Register New Student Account
+            Create Student Account
           </h2>
           <p className="text-xs text-stone-500 dark:text-stone-400">
             Assign Roll No, pre-enrolled year/major scope, and access credentials.

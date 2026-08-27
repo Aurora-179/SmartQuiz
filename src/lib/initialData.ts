@@ -259,7 +259,13 @@ export const initialQuizzes: Quiz[] = [
 ];
 
 export const initialAttempts: Attempt[] = [
-  { quizId: 102, studentRoll: '3IST-101', studentName: 'John Smith', score: 3, total: 3, status: 'submitted', submittedAt: '2026-08-01 10:15' }
+  { quizId: 102, studentRoll: '3IST-101', studentName: 'John Smith', score: 3, total: 3, status: 'submitted', submittedAt: '2026-08-01 10:15' },
+  { quizId: 10, studentRoll: '3IST-101', studentName: 'John Smith', score: 10, total: 10, status: 'submitted', submittedAt: '2026-08-10 14:20' },
+  { quizId: 10, studentRoll: '3CE-102', studentName: 'Alice Wong', score: 9, total: 10, status: 'submitted', submittedAt: '2026-08-12 11:05' },
+  { quizId: 1, studentRoll: '3IST-101', studentName: 'John Smith', score: 9, total: 10, status: 'submitted', submittedAt: '2026-08-15 09:30' },
+  { quizId: 2, studentRoll: '3CE-102', studentName: 'Alice Wong', score: 8, total: 10, status: 'submitted', submittedAt: '2026-08-16 16:45' },
+  { quizId: 6, studentRoll: '3IST-101', studentName: 'John Smith', score: 10, total: 10, status: 'submitted', submittedAt: '2026-08-18 13:10' },
+  { quizId: 7, studentRoll: '3IST-101', studentName: 'John Smith', score: 10, total: 10, status: 'submitted', submittedAt: '2026-08-20 15:40' }
 ];
 
 export const initialNotifications: Notification[] = [

@@ -27,7 +27,7 @@ export const CredentialSlipModal: React.FC = () => {
             <span>Smart Quiz System</span>
           </div>
           <h3 className="text-xs uppercase font-extrabold tracking-widest text-stone-500">
-            Official Student Registration & Access Slip
+            Official Student Credential & Access Slip
           </h3>
         </div>
 
@@ -44,7 +44,7 @@ export const CredentialSlipModal: React.FC = () => {
           </div>
 
           <div className="flex justify-between border-b border-stone-200 dark:border-stone-700/60 pb-2">
-            <span className="text-stone-500">Registered Email:</span>
+            <span className="text-stone-500">Account Email:</span>
             <span className="font-mono font-bold text-stone-900 dark:text-white">{credentialSlipStudent.email}</span>
           </div>
 

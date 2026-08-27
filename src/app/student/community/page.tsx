@@ -6,7 +6,9 @@ import { CommunityHub } from '@/components/CommunityHub';
 import { Lock } from 'lucide-react';
 
 export default function StudentCommunityPage() {
-  const { currentUser, setLoginModalOpen } = useApp();
+  const { currentUser, setLoginModalOpen, isMounted } = useApp();
+
+  if (!isMounted) return null;
 
   if (currentUser.role === 'guest') {
     return (

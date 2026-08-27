@@ -12,17 +12,26 @@ import {
   GraduationCap,
   Sparkles,
   Layers,
+  History,
 } from 'lucide-react';
+import { QuizHistoryModal } from '@/components/Modals/QuizHistoryModal';
 
 const MAJORS = ['All', 'IST', 'CE', 'ECE', 'PrE', 'AME'];
 const YEARS = ['All Years', '1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
 
 export const PracticeHub: React.FC = () => {
-  const { quizzes, startQuiz } = useApp();
+  const { quizzes, startQuiz, currentUser, attempts } = useApp();
 
   const [selectedMajor, setSelectedMajor] = useState<string>('All');
   const [selectedYear, setSelectedYear] = useState<string>('All Years');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [historyOpen, setHistoryOpen] = useState<boolean>(false);
+
+  const studentAttemptsCount = attempts.filter(
+    (a) =>
+      (currentUser.rollNo && a.studentRoll === currentUser.rollNo) ||
+      a.studentName === currentUser.name
+  ).length;
 
   const publicQuizzes = quizzes.filter((q) => q.isPublic);
 
@@ -40,25 +49,6 @@ export const PracticeHub: React.FC = () => {
   return (
     <div className="space-y-8 py-6">
       
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl hero-gradient p-8 md:p-10 border border-sage-200 dark:border-sage-800 shadow-sm space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sage-100 dark:bg-sage-900/80 text-sage-800 dark:text-sage-200 text-xs font-bold border border-sage-300 dark:border-sage-700">
-          <BookOpen className="w-4 h-4 text-sage-600 dark:text-sage-300" />
-          <span>Open Academic Practice Catalog</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-extrabold text-stone-900 dark:text-white tracking-tight">
-          Practice Quizzes & Skill Modules
-        </h1>
-
-        <p className="text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-2xl leading-relaxed">
-          Explore free, open-access academic practice modules created by university faculty. Filter by your specialization major or academic year to sharpen your knowledge.
-        </p>
-
-        <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 opacity-15 dark:opacity-20 text-sage-700 pointer-events-none">
-          <GraduationCap className="w-56 h-56" />
-        </div>
-      </div>
 
       {/* Filter Controls Bar */}
       <div className="glass-card p-6 space-y-4 shadow-sm border border-stone-200 dark:border-stone-800">
@@ -86,7 +76,7 @@ export const PracticeHub: React.FC = () => {
             </div>
           </div>
 
-          {/* Year Filter Dropdown & Search */}
+          {/* Year Filter Dropdown & My History Button */}
           <div className="flex flex-wrap items-center gap-3">
             <div>
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-stone-400 block mb-1">
@@ -104,6 +94,24 @@ export const PracticeHub: React.FC = () => {
                 ))}
               </select>
             </div>
+
+            {currentUser.role === 'student' && (
+              <div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-stone-400 block mb-1">
+                  Quiz Records
+                </span>
+                <button
+                  onClick={() => setHistoryOpen(true)}
+                  className="btn-outline-sage text-xs py-2 px-3.5 flex items-center gap-1.5 font-bold shadow-xs"
+                >
+                  <History className="w-4 h-4 text-sage-600 dark:text-sage-400" />
+                  <span>My Quiz History</span>
+                  <span className="bg-sage-600 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold ml-1">
+                    {studentAttemptsCount}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -197,6 +205,9 @@ export const PracticeHub: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Quiz History Modal */}
+      <QuizHistoryModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
 
     </div>
   );

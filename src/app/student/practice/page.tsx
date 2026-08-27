@@ -5,8 +5,10 @@ import { useApp } from '@/context/AppContext';
 import { PracticeHub } from '@/components/PracticeHub';
 import { Lock } from 'lucide-react';
 
-export default function PracticePage() {
-  const { currentUser, setLoginModalOpen } = useApp();
+export default function StudentPracticePage() {
+  const { currentUser, setLoginModalOpen, isMounted } = useApp();
+
+  if (!isMounted) return null;
 
   if (currentUser.role === 'guest') {
     return (

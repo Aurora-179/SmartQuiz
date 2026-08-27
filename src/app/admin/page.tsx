@@ -7,17 +7,18 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { ShieldAlert } from 'lucide-react';
 
 export default function AdminPage() {
-  const { currentUser } = useApp();
+  const { currentUser, isMounted } = useApp();
   const router = useRouter();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('sq_user');
-    const role = currentUser.role !== 'guest' ? currentUser.role : (savedUser ? JSON.parse(savedUser).role : 'guest');
+    if (!isMounted) return;
 
-    if (role !== 'admin') {
+    if (currentUser.role !== 'admin') {
       router.push('/admin/login');
     }
-  }, [currentUser, router]);
+  }, [currentUser, isMounted, router]);
+
+  if (!isMounted) return null;
 
   if (currentUser.role !== 'admin') {
     return (
