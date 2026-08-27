@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 transition-colors duration-200 min-h-screen font-sans;
+  }
+}
+
+/* Glassmorphism & Custom Design Utilities */
+.glass-card {
+  @apply bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm rounded-2xl;
+}
+
+.hero-gradient {
+  background: #ffffff;
+}
+
+.dark .hero-gradient {
+  background: linear-gradient(135deg, #3f0714 0%, #27060f 50%, #140307 100%);
+  border-color: #881337;
+}
+
+.btn-sage {
+  @apply bg-sage-600 hover:bg-sage-700 text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98];
+}
+
+.btn-outline-sage {
+  @apply border-2 border-sage-600 text-sage-700 dark:text-sage-300 hover:bg-sage-600 hover:text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 active:scale-[0.98];
+}
+
+.badge-sage {
+  @apply bg-sage-100 dark:bg-sage-950/80 text-sage-800 dark:text-rose-300 border border-sage-300 dark:border-sage-700/80 px-3 py-1 rounded-full font-semibold text-xs inline-flex items-center gap-1;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s infinite ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-stone-100 dark:bg-stone-900;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-sage-400 dark:bg-sage-700 rounded-full;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
