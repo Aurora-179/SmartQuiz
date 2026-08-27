@@ -1,13 +1,13 @@
 # SmartQuiz - Next.js Modern Frontend Application
 
-SmartQuiz ၏ Next.js 14 (React, TypeScript, Tailwind CSS) Frontend Web Application ဖြစ်ပါသည်။ 
+SmartQuiz ၏ Next.js 14 (React, TypeScript, Tailwind CSS) Frontend Web Application ၏ Setup နှင့် Developer Guideline ဖြစ်ပါသည်။ 
 
 ---
 
 ## 🛠️ Prerequisites (လိုအပ်ချက်များ)
 
 - **Node.js:** v18.0.0 သို့မဟုတ် ပိုသစ်သော Version
-- **Package Manager:** npm (သို့မဟုတ် pnpm / yarn)
+- **Package Manager:** `npm` (သို့မဟုတ် `pnpm` / `yarn`)
 
 ---
 
@@ -38,6 +38,51 @@ npm run build
 
 ---
 
+## 📁 Project Architecture & Folder Structure (ဖိုင်လမ်းကြောင်း လမ်းညွှန်)
+
+```text
+SmartQuiz/
+├── src/
+│   ├── app/                    # Next.js 14 App Router Pages
+│   │   ├── page.tsx            # Home Page (Welcome & General Practice Quizzes)
+│   │   ├── community/          # Community Hub (Global Chat & Announcements)
+│   │   ├── practice/           # Student Practice Quizzes Page
+│   │   ├── quiz/[id]/          # Quiz Exam Taking Interface (Timer, Question Navigation)
+│   │   ├── student/            # Student Dashboard & Practice History
+│   │   ├── teacher/            # Teacher Dashboard & Quiz Creation Form
+│   │   └── admin/              # Admin Dashboard & Student/Teacher Approval & Slip Printing
+│   ├── components/             # Reusable UI Components
+│   │   ├── Navbar.tsx          # Navigation Header & Role Quick Switch
+│   │   ├── Modals/             # Login Modal, Create Account Modal, Credential Slip Modal
+│   │   └── Cards/              # Quiz Cards, Stat Widgets
+│   ├── context/
+│   │   └── AppContext.tsx      # Global State Management (User, Quizzes, Attempts, Chat)
+│   ├── lib/
+│   │   ├── api.ts              # Java Backend API Client Layer (Fetch API Wrapper)
+│   │   └── initialData.ts     # Mock Data & Local Fallback Datasets
+│   └── types/
+│       └── index.ts            # TypeScript Types & Interfaces (User, Quiz, Attempt, Chat)
+├── .env.example                # Sample Environment Variables
+├── next.config.js              # Next.js Configuration
+└── tailwind.config.ts          # Tailwind CSS Configuration & Theme Design System
+```
+
+---
+
+## 💡 State Management & Backend Integration (အလုပ်လုပ်ပုံ)
+
+1. **Global State (`AppContext.tsx`):**
+   - App တစ်ခုလုံး၏ User Auth State, Theme (Light/Dark), Quizzes List, Students, Teachers, Chat Messages များကို `useApp()` Hook မှတစ်ဆင့် နေရာမရွေး ရယူသုံးစွဲနိုင်ပါသည်။
+
+2. **Backend API Sync (`lib/api.ts`):**
+   - Next.js App စတင်ချိန်တွင် Java EE Backend (`http://localhost:8080/SmartQuizJavaEE/DashboardDataController`) မှ ရလဒ်များကို လှမ်းယူပြီး State ကို Auto Update လုပ်ပေးပါသည်။
+   - User Login, Quiz ဖန်တီးခြင်း၊ Exam ဖြေဆိုခြင်း၊ Chat ပို့ခြင်းများတွင် Java Backend API သို့ သွားရောက် သိမ်းဆည်းပါသည်။
+
+3. **Offline Fallback:**
+   - Java Server မဖွင့်ထားပါကလည်း `AppContext.tsx` က Browser ၏ `localStorage` နှင့် `initialData.ts` ကို သုံး၍ အလိုအလျောက် Seamless သုံးစွဲနိုင်အောင် ပြုလုပ်ထားပါသည်။
+
+---
+
 ## 🔐 Default Demo Accounts (အကောင့်များ)
 
 | Role | Roll No / Email | Password | Dashboard Link |
@@ -48,7 +93,7 @@ npm run build
 
 ---
 
-## ⚡ Features (ပါဝင်သော စွမ်းဆောင်ရည်များ)
+## ⚡ Key Features (ပါဝင်သော စွမ်းဆောင်ရည်များ)
 
 - **Role-based Authentication & Access Control:** (Student, Teacher, Admin, Guest)
 - **Practice & Exam Mode:** တိုက်ရိုက် မေးခွန်းဖြေဆိုခြင်း၊ အချိန် limit၊ အမှတ်စာရင်းထုတ်ပေးခြင်း
