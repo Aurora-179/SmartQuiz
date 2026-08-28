@@ -147,7 +147,28 @@ export const QuizEngine: React.FC = () => {
 
   if (!currentActiveQuiz) return null;
 
+  if (!currentActiveQuiz.questions || currentActiveQuiz.questions.length === 0) {
+    return (
+      <div className="max-w-md mx-auto py-20 text-center space-y-4">
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/40 text-amber-600 rounded-full w-fit mx-auto">
+          <BookOpen className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-stone-900 dark:text-white">No Questions Available</h2>
+        <p className="text-stone-500 text-sm">
+          This quiz currently does not contain any questions. Please select another quiz or check back later.
+        </p>
+        <button
+          onClick={() => finishQuiz(currentUser.role === 'student' ? '/student/practice' : '/')}
+          className="btn-sage inline-flex items-center gap-2 text-xs"
+        >
+          <ArrowLeft className="w-4 h-4" /> Return to Practice
+        </button>
+      </div>
+    );
+  }
+
   const currentQuestion = currentActiveQuiz.questions[currentQIndex];
+  if (!currentQuestion) return null;
 
   const handleTimeExpired = () => {
     alert('Time limit expired! Submitting your examination answers now.');
