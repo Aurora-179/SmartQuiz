@@ -68,7 +68,7 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setQuestions((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isPublic && !code) {
@@ -76,7 +76,7 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
       return;
     }
 
-    addQuiz({
+    const created = await addQuiz({
       title: title.trim(),
       year: isPublic ? 'All' : year,
       major: isPublic ? 'Public Practice' : major,
@@ -90,6 +90,10 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
     });
 
     alert('Quiz created successfully!');
+    if (!created) {
+      alert('Could not publish the quiz. Please check your teacher/admin session.');
+      return;
+    }
     onClose();
     setTitle('');
     setCode('');

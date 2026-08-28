@@ -18,14 +18,14 @@ export interface StudentAccount {
   email: string;
   year: string;
   major: string;
-  pass: string;
+  pass?: string;
   status: 'approved' | 'pending' | 'suspended';
 }
 
 export interface TeacherAccount {
   id: number;
   email: string;
-  pass: string;
+  pass?: string;
   name: string;
   dept: string;
 }

@@ -20,24 +20,17 @@ export default function AdminLoginPage() {
     }
   }, [currentUser, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const success = login('admin', {
-        email: email.trim(),
-        pass: password.trim(),
-      });
-
-      if (success) {
-        router.push('/admin');
-      } else {
-        setErrorMessage('Invalid administrative credentials or unauthorized access privilege.');
-        setIsLoading(false);
-      }
-    }, 400);
+    const success = await login('admin', { email: email.trim(), pass: password.trim() });
+    if (success) router.push('/admin');
+    else {
+      setErrorMessage('Invalid administrative credentials or unauthorized access privilege.');
+      setIsLoading(false);
+    }
   };
 
   return (

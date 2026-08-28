@@ -17,7 +17,7 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPass.length < 4) {
@@ -30,7 +30,7 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose }) => {
       return;
     }
 
-    const success = changeUserPassword(newPass.trim());
+    const success = await changeUserPassword(newPass.trim());
     if (success) {
       alert('Password changed successfully!');
       onClose();

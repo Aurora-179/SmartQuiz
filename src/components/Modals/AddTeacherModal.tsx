@@ -19,16 +19,20 @@ export const AddTeacherModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const created = addTeacher({
+    const created = await addTeacher({
       name: name.trim(),
       email: email.trim(),
       dept,
       pass: pass.trim(),
     });
 
+    if (!created) {
+      alert('Could not create the teacher account. Please check your admin session.');
+      return;
+    }
     alert(`Teacher account for "${created.name}" created successfully!`);
     onClose();
     setName('');

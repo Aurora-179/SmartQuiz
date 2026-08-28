@@ -57,7 +57,7 @@ export const CredentialSlipModal: React.FC = () => {
 
           <div className="flex justify-between pt-1">
             <span className="text-stone-500">Portal Password:</span>
-            <span className="font-mono font-bold text-red-600 dark:text-red-400">{credentialSlipStudent.pass}</span>
+            <span className="font-mono font-bold text-red-600 dark:text-red-400">{credentialSlipStudent.pass || 'Not available'}</span>
           </div>
         </div>
 

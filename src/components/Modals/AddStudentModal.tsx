@@ -21,10 +21,10 @@ export const AddStudentModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const created = addStudent({
+    const created = await addStudent({
       rollNo: rollNo.trim(),
       name: name.trim(),
       email: email.trim(),
@@ -33,6 +33,10 @@ export const AddStudentModal: React.FC<Props> = ({ isOpen, onClose }) => {
       pass: pass.trim(),
     });
 
+    if (!created) {
+      alert('Could not create the student account. Please check your admin session.');
+      return;
+    }
     alert(`Student account for "${created.name}" created successfully!`);
     setCredentialSlipStudent(created);
     onClose();

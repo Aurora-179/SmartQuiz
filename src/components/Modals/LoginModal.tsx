@@ -17,14 +17,14 @@ export const LoginModal: React.FC = () => {
 
   if (!loginModalOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
     // Ensure selectedRole is only student or teacher in modal
     const targetRole = selectedRole === 'admin' ? 'student' : selectedRole;
 
-    const success = login(targetRole, {
+    const success = await login(targetRole, {
       rollNo: rollNo.trim(),
       email: email.trim(),
       pass: password.trim(),
