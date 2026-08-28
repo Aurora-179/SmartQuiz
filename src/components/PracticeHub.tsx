@@ -16,6 +16,7 @@ import {
   History,
   LockKeyhole,
   X,
+  Calendar,
 } from 'lucide-react';
 import { QuizHistoryModal } from '@/components/Modals/QuizHistoryModal';
 
@@ -24,6 +25,33 @@ const YEARS = ['All Years', '1st Year', '2nd Year', '3rd Year', '4th Year', '5th
 
 export const PracticeHub: React.FC = () => {
   const { quizzes, startQuiz, currentUser, attempts } = useApp();
+
+  const getScheduleStatus = (quiz: Quiz) => {
+    if (!quiz.startTime && !quiz.endTime) return { status: 'open', label: null };
+
+    const now = new Date();
+    const start = quiz.startTime ? new Date(quiz.startTime) : null;
+    const end = quiz.endTime ? new Date(quiz.endTime) : null;
+
+    if (start && now < start) {
+      return {
+        status: 'upcoming',
+        label: `Scheduled: ${start.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+      };
+    }
+
+    if (end && now > end) {
+      return {
+        status: 'expired',
+        label: `Expired: ${end.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+      };
+    }
+
+    return {
+      status: 'active',
+      label: `Active until ${end ? end.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Open'}`,
+    };
+  };
 
   const [selectedMajor, setSelectedMajor] = useState<string>('All');
   const [selectedYear, setSelectedYear] = useState<string>('All Years');
@@ -202,47 +230,86 @@ export const PracticeHub: React.FC = () => {
 
         {filteredQuizzes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredQuizzes.map((quiz) => (
-              <div
-                key={quiz.id}
-                className={`glass-card p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-t-4 ${quiz.isPublic ? 'border-t-sage-500' : 'border-t-rose-500'}`}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider bg-sage-100 dark:bg-sage-900/60 text-sage-800 dark:text-sage-200 px-2.5 py-1 rounded-md border border-sage-300 dark:border-sage-700">
-                      {quiz.major} • {quiz.year}
-                    </span>
-                    <span className="text-xs text-stone-400 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      {quiz.overallTime} mins
-                    </span>
+            {filteredQuizzes.map((quiz) => {
+              const sched = getScheduleStatus(quiz);
+              const isLockedBySchedule = sched.status === 'upcoming' || sched.status === 'expired';
+
+              return (
+                <div
+                  key={quiz.id}
+                  className={`glass-card p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-t-4 ${quiz.isPublic ? 'border-t-sage-500' : 'border-t-rose-500'}`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider bg-sage-100 dark:bg-sage-900/60 text-sage-800 dark:text-sage-200 px-2.5 py-1 rounded-md border border-sage-300 dark:border-sage-700">
+                        {quiz.major} • {quiz.year}
+                      </span>
+                      <span className="text-xs text-stone-400 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        {quiz.overallTime} mins
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-stone-900 dark:text-white text-base leading-snug">
+                      {quiz.title}
+                    </h3>
+
+                    <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                      <HelpCircle className="w-3.5 h-3.5 text-sage-600" />
+                      <span>{quiz.questions.length} Questions (MCQ, T/F, Blanks)</span>
+                    </p>
+
+                    {sched.label && (
+                      <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 w-fit ${
+                        sched.status === 'upcoming'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
+                          : sched.status === 'expired'
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300'
+                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                      }`}>
+                        <Calendar className="w-3 h-3" />
+                        <span>{sched.label}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <h3 className="font-bold text-stone-900 dark:text-white text-base leading-snug">
-                    {quiz.title}
-                  </h3>
-
-                  <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
-                    <HelpCircle className="w-3.5 h-3.5 text-sage-600" />
-                    <span>{quiz.questions.length} Questions (MCQ, T/F, Blanks)</span>
-                  </p>
-                </div>
-
-                <div className="pt-5 mt-5 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between">
-                  <div className="text-xs text-stone-400">
-                    <span className="block text-[10px] uppercase font-semibold text-stone-500">Instructor</span>
-                    <span className="font-semibold text-stone-700 dark:text-stone-300">{quiz.teacherName}</span>
+                  <div className="pt-5 mt-5 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between">
+                    <div className="text-xs text-stone-400">
+                      <span className="block text-[10px] uppercase font-semibold text-stone-500">Instructor</span>
+                      <span className="font-semibold text-stone-700 dark:text-stone-300">{quiz.teacherName}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (isLockedBySchedule) {
+                          alert(sched.status === 'upcoming' ? `Exam has not started yet. ${sched.label}` : `Exam session has expired. ${sched.label}`);
+                          return;
+                        }
+                        quiz.isPublic ? startQuiz(quiz) : requestPrivateQuizAccess(quiz);
+                      }}
+                      disabled={isLockedBySchedule}
+                      className={`${
+                        isLockedBySchedule
+                          ? 'bg-stone-300 text-stone-500 cursor-not-allowed dark:bg-stone-800 dark:text-stone-600'
+                          : quiz.isPublic
+                          ? 'btn-sage'
+                          : 'bg-rose-600 hover:bg-rose-700 text-white'
+                      } text-xs py-2 px-4 flex items-center gap-1.5 font-bold shadow-sm rounded-xl transition-colors`}
+                    >
+                      {quiz.isPublic ? <PlayCircle className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
+                      <span>
+                        {sched.status === 'upcoming'
+                          ? 'Not Started'
+                          : sched.status === 'expired'
+                          ? 'Expired'
+                          : quiz.isPublic
+                          ? 'Start Practice'
+                          : 'Enter Exam'}
+                      </span>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => quiz.isPublic ? startQuiz(quiz) : requestPrivateQuizAccess(quiz)}
-                    className={`${quiz.isPublic ? 'btn-sage' : 'bg-rose-600 hover:bg-rose-700 text-white'} text-xs py-2 px-4 flex items-center gap-1.5 font-bold shadow-sm rounded-xl transition-colors`}
-                  >
-                    {quiz.isPublic ? <PlayCircle className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
-                    <span>{quiz.isPublic ? 'Start Practice' : 'Enter Exam'}</span>
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="glass-card p-12 text-center space-y-3 border border-stone-200 dark:border-stone-800">

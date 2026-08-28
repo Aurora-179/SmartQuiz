@@ -1,6 +1,14 @@
 import { Attempt, ChatMessage, Question, Quiz, Role, StudentAccount, TeacherAccount, User } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081/SmartQuizJavaEE';
+export const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  if (typeof window === 'undefined') {
+    return 'http://localhost:8081/SmartQuizJavaEE';
+  }
+  return '/SmartQuizJavaEE';
+};
 
 type BackendUser = {
   id: number;
@@ -115,7 +123,8 @@ const toAttempt = (attempt: any): Attempt => ({
 });
 
 async function request(path: string, options: RequestInit = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const baseUrl = getApiBaseUrl();
+  const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     credentials: 'include',
     cache: 'no-store',
@@ -130,24 +139,30 @@ const form = (values: Record<string, string>) => new URLSearchParams(values).toS
 
 export async function fetchDashboardData(user: User | null) {
   const [quizzesData, chatData] = await Promise.all([
-    request('/api/quizzes'),
-    request('/api/chat/messages'),
+    request('/api/quizzes').catch((err) => {
+      console.error('Failed to fetch quizzes:', err);
+      return { quizzes: [] };
+    }),
+    request('/api/chat/messages').catch((err) => {
+      console.error('Failed to fetch chat messages:', err);
+      return { messages: [] };
+    }),
   ]);
 
   const adminData = user?.role === 'admin'
     ? await Promise.all([
-      request('/api/admin/students'),
-      request('/api/admin/teachers'),
-      request('/api/admin/attempts'),
+      request('/api/admin/students').catch(() => ({ students: [] })),
+      request('/api/admin/teachers').catch(() => ({ teachers: [] })),
+      request('/api/admin/attempts').catch(() => ({ attempts: [] })),
     ])
     : null;
 
   return {
-    students: (adminData?.[0].students || []).map(toStudent),
-    teachers: (adminData?.[1].teachers || []).map(toTeacher),
-    quizzes: (quizzesData.quizzes || []).map(toQuiz),
-    attempts: (adminData?.[2].attempts || []).map(toAttempt),
-    chatMessages: (chatData.messages || []).map(toChatMessage),
+    students: (adminData?.[0]?.students || []).map(toStudent),
+    teachers: (adminData?.[1]?.teachers || []).map(toTeacher),
+    quizzes: (quizzesData?.quizzes || []).map(toQuiz),
+    attempts: (adminData?.[2]?.attempts || []).map(toAttempt),
+    chatMessages: (chatData?.messages || []).map(toChatMessage),
   };
 }
 
@@ -174,6 +189,7 @@ export async function createQuiz(quiz: Omit<Quiz, 'id'>) {
     title: quiz.title, category: quiz.isPublic ? 'public' : 'exam', year: quiz.year,
     major: quiz.major, subject: quiz.subject, overallTime: String(quiz.overallTime),
     questionTime: String(quiz.questionTime), teacherName: quiz.teacherName, code: quiz.code || '',
+    startTime: quiz.startTime || '', endTime: quiz.endTime || '',
     questionCount: String(quiz.questions.length),
   };
   quiz.questions.forEach((question, index) => {

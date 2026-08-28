@@ -11,6 +11,7 @@ import {
 
 interface AppContextType {
   isMounted: boolean;
+  isLoading: boolean;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   activeView: 'home' | 'community' | 'dashboard' | 'quiz';
@@ -62,16 +63,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [credentialSlipStudent, setCredentialSlipStudent] = useState<StudentAccount | null>(null);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const hydrate = async (knownUser?: User | null) => {
-    const user = knownUser === undefined ? await getCurrentUser() : knownUser;
-    const dashboard = await fetchDashboardData(user);
-    setQuizzes(dashboard.quizzes);
-    setStudents(dashboard.students);
-    setTeachers(dashboard.teachers);
-    setAttempts(dashboard.attempts);
-    setChatMessages(dashboard.chatMessages);
-    setCurrentUser(user || guestUser);
+    try {
+      const user = knownUser === undefined ? await getCurrentUser() : knownUser;
+      const dashboard = await fetchDashboardData(user);
+      setQuizzes(dashboard.quizzes);
+      setStudents(dashboard.students);
+      setTeachers(dashboard.teachers);
+      setAttempts(dashboard.attempts);
+      setChatMessages(dashboard.chatMessages);
+      setCurrentUser(user || guestUser);
+    } catch {
+      setCurrentUser(guestUser);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -79,7 +87,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const savedTheme = (localStorage.getItem('sq_theme') as 'light' | 'dark') || 'light';
     setTheme(savedTheme);
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    hydrate().catch(() => setCurrentUser(guestUser));
+    hydrate();
   }, []);
 
   const activeView = useMemo<'home' | 'community' | 'dashboard' | 'quiz'>(() => {
@@ -136,7 +144,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const startQuiz = (quiz: Quiz) => { setCurrentActiveQuiz(quiz); router.push(`/quiz/${quiz.id}`); };
   const finishQuiz = (targetRoute?: string) => { setCurrentActiveQuiz(null); router.push(targetRoute || (currentUser.role === 'student' ? '/student/practice' : '/')); };
 
-  return <AppContext.Provider value={{ isMounted, theme, toggleTheme, activeView, setActiveView, currentUser, login, logout, quizzes, addQuiz, deleteQuiz, students, addStudent, toggleStudentStatus, teachers, addTeacher, attempts, submitAttempt, notifications: [], chatMessages, sendChatMessage, pinChatMessage, currentActiveQuiz, startQuiz, finishQuiz, reviewQuizId, setReviewQuizId, credentialSlipStudent, setCredentialSlipStudent, loginModalOpen, setLoginModalOpen, changeUserPassword }}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={{ isMounted, isLoading, theme, toggleTheme, activeView, setActiveView, currentUser, login, logout, quizzes, addQuiz, deleteQuiz, students, addStudent, toggleStudentStatus, teachers, addTeacher, attempts, submitAttempt, notifications: [], chatMessages, sendChatMessage, pinChatMessage, currentActiveQuiz, startQuiz, finishQuiz, reviewQuizId, setReviewQuizId, credentialSlipStudent, setCredentialSlipStudent, loginModalOpen, setLoginModalOpen, changeUserPassword }}>{children}</AppContext.Provider>;
 };
 
 export const useApp = () => { const context = useContext(AppContext); if (!context) throw new Error('useApp must be used within AppProvider'); return context; };

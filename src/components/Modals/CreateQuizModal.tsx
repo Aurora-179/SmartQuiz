@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { academicCurriculum } from '@/lib/initialData';
 import { Question } from '@/types';
-import { ArrowLeft, X, Plus, Trash2, Key, HelpCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, X, Plus, Trash2, Key, HelpCircle, CheckCircle, Calendar } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -22,6 +22,8 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [code, setCode] = useState('');
   const [overallTime, setOverallTime] = useState(10);
   const [questionTime, setQuestionTime] = useState(30);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -41,8 +43,6 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setSubject(availableSubjects[0]);
     }
   }, [year, major]);
-
-  if (!isOpen) return null;
 
   const generateRandomCode = () => {
     const random6Digits = Math.floor(100000 + Math.random() * 900000).toString();
@@ -170,6 +170,11 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
       }
     }
 
+    if (startTime && endTime && new Date(endTime) <= new Date(startTime)) {
+      alert('Schedule End Date & Time must be after Start Date & Time.');
+      return;
+    }
+
     const created = await addQuiz({
       title: title.trim(),
       year: isPublic ? 'All' : year,
@@ -178,6 +183,8 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
       code: isPublic ? null : code,
       overallTime,
       questionTime,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
       isPublic,
       teacherName: currentUser.name || 'Faculty Instructor',
       questions,
@@ -193,7 +200,11 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
     onClose();
     setTitle('');
     setCode('');
+    setStartTime('');
+    setEndTime('');
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:py-8 bg-stone-900/60 backdrop-blur-sm">
@@ -365,6 +376,41 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 onChange={(e) => setQuestionTime(Number(e.target.value))}
                 className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-semibold focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/* Exam Schedule Window */}
+          <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-3">
+            <h4 className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-amber-600" />
+              <span>Exam Schedule Availability Window (Optional)</span>
+            </h4>
+            <p className="text-[11px] text-amber-700/80 dark:text-amber-400">
+              Set the exact date & time window when students are allowed to attempt this quiz. Leave blank for immediate open access.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                  Start Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                  End / Expiry Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 

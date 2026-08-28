@@ -131,6 +131,11 @@ export const TeacherDashboard: React.FC = () => {
                       <td className="py-3.5 px-3 font-bold text-stone-900 dark:text-white max-w-[150px] sm:max-w-none">
                         <span className="line-clamp-1">{q.title}</span>
                         <span className="block text-[10px] text-stone-400 font-normal truncate">{q.subject}</span>
+                        {(q.startTime || q.endTime) && (
+                          <span className="block text-[9px] text-amber-600 dark:text-amber-400 font-semibold truncate">
+                            {q.startTime ? `From: ${q.startTime.replace('T', ' ')}` : ''} {q.endTime ? `To: ${q.endTime.replace('T', ' ')}` : ''}
+                          </span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-3 whitespace-nowrap">
@@ -205,6 +210,11 @@ export const TeacherDashboard: React.FC = () => {
                 <p className="text-[10px] text-stone-500 dark:text-stone-400">
                   Code: <span className="font-mono font-bold text-stone-900 dark:text-white me-2">{selectedQuiz.code || 'OPEN'}</span>
                   Subject: <span className="font-semibold">{selectedQuiz.subject}</span>
+                  {(selectedQuiz.startTime || selectedQuiz.endTime) && (
+                    <span className="block text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                      Schedule: {selectedQuiz.startTime ? selectedQuiz.startTime.replace('T', ' ') : 'Start Anytime'} ~ {selectedQuiz.endTime ? selectedQuiz.endTime.replace('T', ' ') : 'No Expiry'}
+                    </span>
+                  )}
                 </p>
               </div>
 

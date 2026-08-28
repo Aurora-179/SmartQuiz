@@ -60,7 +60,7 @@ const DEPARTMENTS = [
 ];
 
 export const PublicHome: React.FC = () => {
-  const { currentUser, quizzes, startQuiz, setLoginModalOpen } = useApp();
+  const { currentUser, quizzes, startQuiz, setLoginModalOpen, isLoading } = useApp();
   const router = useRouter();
   const publicQuizzes = quizzes.filter((quiz) => quiz.isPublic);
   const privateQuizzes = quizzes.filter((quiz) => !quiz.isPublic);
@@ -162,7 +162,7 @@ export const PublicHome: React.FC = () => {
           </div>
         ) : (
           <div className="glass-card border border-dashed border-stone-300 p-8 text-center text-xs text-stone-500 dark:border-stone-700 dark:text-stone-400">
-            Loading public quizzes from the backend…
+            {isLoading ? 'Loading public quizzes from the backend…' : 'No public practice quizzes have been published yet.'}
           </div>
         )}
       </section>
@@ -205,7 +205,7 @@ export const PublicHome: React.FC = () => {
           </div>
         ) : (
           <div className="glass-card border border-dashed border-stone-300 p-8 text-center text-xs text-stone-500 dark:border-stone-700 dark:text-stone-400">
-            No private exams have been published yet.
+            {isLoading ? 'Loading private exams from the backend…' : 'No private exams have been published yet.'}
           </div>
         )}
       </section>
