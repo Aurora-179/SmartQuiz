@@ -12,11 +12,10 @@ export default function StudentPage() {
   useEffect(() => {
     if (!isMounted) return;
 
-    if (currentUser.role !== 'student') {
-      if (currentUser.role === 'guest') setLoginModalOpen(true);
-      router.push('/');
+    if (currentUser.role !== 'student' && currentUser.role === 'guest') {
+      setLoginModalOpen(true);
     }
-  }, [currentUser, isMounted, router, setLoginModalOpen]);
+  }, [currentUser, isMounted, setLoginModalOpen]);
 
   if (!isMounted) return null;
 

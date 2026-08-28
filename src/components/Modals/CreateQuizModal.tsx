@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { academicCurriculum } from '@/lib/initialData';
 import { Question } from '@/types';
-import { X, Plus, Trash2, Key, HelpCircle } from 'lucide-react';
+import { ArrowLeft, X, Plus, Trash2, Key, HelpCircle, CheckCircle } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -68,12 +68,106 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setQuestions((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const handleTypeChange = (qIndex: number, newType: 'mcq' | 'tf' | 'blank') => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const target = { ...updated[qIndex], type: newType };
+
+      if (newType === 'mcq') {
+        target.choices = ['Option A', 'Option B', 'Option C', 'Option D'];
+        target.answer = target.choices[0];
+      } else if (newType === 'tf') {
+        target.choices = ['True', 'False'];
+        target.answer = 'True';
+      } else if (newType === 'blank') {
+        target.choices = [];
+        target.answer = '';
+      }
+
+      updated[qIndex] = target;
+      return updated;
+    });
+  };
+
+  const handleChoiceChange = (qIndex: number, choiceIndex: number, newValue: string) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const target = { ...updated[qIndex] };
+      const newChoices = [...(target.choices || [])];
+      const oldValue = newChoices[choiceIndex];
+
+      newChoices[choiceIndex] = newValue;
+      target.choices = newChoices;
+
+      // If the answer was pointing to the old choice value, update answer to newValue
+      if (target.answer === oldValue || !newChoices.includes(target.answer)) {
+        target.answer = newValue;
+      }
+
+      updated[qIndex] = target;
+      return updated;
+    });
+  };
+
+  const handleAnswerSelect = (qIndex: number, answerValue: string) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      updated[qIndex] = { ...updated[qIndex], answer: answerValue };
+      return updated;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isPublic && !code) {
-      alert('Please generate or enter a 6-digit access code for graded exams.');
+    if (!title.trim()) {
+      alert('Please enter a valid Quiz Title.');
       return;
+    }
+
+    if (!isPublic) {
+      if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
+        alert('Please generate or enter a valid 6-digit numeric access code for graded exams.');
+        return;
+      }
+    }
+
+    if (questions.length === 0) {
+      alert('Quiz must have at least 1 question.');
+      return;
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.text.trim()) {
+        alert(`Question #${i + 1} statement cannot be empty.`);
+        return;
+      }
+
+      if (q.type === 'mcq') {
+        if (!q.choices || q.choices.length < 2) {
+          alert(`Question #${i + 1} must have multiple choices.`);
+          return;
+        }
+        if (q.choices.some((c) => !c.trim())) {
+          alert(`Question #${i + 1} has empty choice fields. Please fill in all options.`);
+          return;
+        }
+        if (!q.answer.trim() || !q.choices.includes(q.answer)) {
+          alert(`Question #${i + 1} correct answer must match one of the choices.`);
+          return;
+        }
+      } else if (q.type === 'tf') {
+        if (q.answer !== 'True' && q.answer !== 'False') {
+          alert(`Question #${i + 1} correct answer must be 'True' or 'False'.`);
+          return;
+        }
+      } else if (q.type === 'blank') {
+        if (!q.answer.trim()) {
+          alert(`Question #${i + 1} requires an expected correct answer string.`);
+          return;
+        }
+      }
     }
 
     const created = await addQuiz({
@@ -89,19 +183,21 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
       questions,
     });
 
-    alert('Quiz created successfully!');
     if (!created) {
       alert('Could not publish the quiz. Please check your teacher/admin session.');
       return;
     }
+    alert(isPublic
+      ? 'Public practice quiz created successfully!'
+      : `Private exam created successfully. Share this access code with eligible students: ${created.code}`);
     onClose();
     setTitle('');
     setCode('');
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="glass-card bg-white dark:bg-stone-900 max-w-3xl w-full p-6 space-y-6 relative my-8 shadow-2xl border border-stone-200 dark:border-stone-800">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:py-8 bg-stone-900/60 backdrop-blur-sm">
+      <div className="glass-card bg-white dark:bg-stone-900 max-w-3xl w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 space-y-6 relative shadow-2xl border border-stone-200 dark:border-stone-800">
         
         <button
           onClick={onClose}
@@ -110,13 +206,22 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <X className="w-5 h-5" />
         </button>
 
-        <div className="border-b border-stone-100 dark:border-stone-800 pb-3">
-          <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">
-            Create New Quiz / Examination
-          </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
-            Configure scope restriction, 6-digit access code, dual timers, and question bank.
-          </p>
+        <div className="sticky top-0 z-10 -mx-6 -mt-6 mb-6 border-b border-stone-100 dark:border-stone-800 bg-white px-6 pt-6 pb-3 dark:bg-stone-900">
+          <div className="pr-8">
+            <button
+              type="button"
+              onClick={onClose}
+              className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold text-sage-700 transition-colors hover:text-sage-900 dark:text-sage-300 dark:hover:text-sage-100"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to Teacher Dashboard
+            </button>
+            <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">
+              Create New Quiz / Examination
+            </h2>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Configure scope restriction, 6-digit access code, dual timers, and question bank.
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -217,7 +322,7 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     type="text"
                     maxLength={6}
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="e.g. 849201"
                     className="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl font-mono text-sm font-bold tracking-widest text-sage-600 focus:outline-none"
                   />
@@ -279,15 +384,28 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1">
               {questions.map((q, qIdx) => (
                 <div key={q.id} className="p-4 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50/50 dark:bg-stone-800/40 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sage-600">Question #{qIdx + 1}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-sage-600">Question #{qIdx + 1}</span>
+                      <select
+                        value={q.type}
+                        onChange={(e) => handleTypeChange(qIdx, e.target.value as any)}
+                        className="px-2 py-1 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs font-semibold text-stone-700 dark:text-stone-300"
+                      >
+                        <option value="mcq">Multiple Choice</option>
+                        <option value="tf">True / False</option>
+                        <option value="blank">Fill in Blank</option>
+                      </select>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => handleRemoveQuestion(qIdx)}
                       className="text-red-500 hover:text-red-700 p-1"
+                      title="Remove Question"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -306,40 +424,100 @@ export const CreateQuizModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     className="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs focus:outline-none"
                   />
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-500 mb-0.5">Type</label>
-                      <select
-                        value={q.type}
-                        onChange={(e) => {
-                          const updated = [...questions];
-                          updated[qIdx].type = e.target.value as any;
-                          setQuestions(updated);
-                        }}
-                        className="w-full px-2 py-1.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs"
-                      >
-                        <option value="mcq">Multiple Choice</option>
-                        <option value="tf">True / False</option>
-                        <option value="blank">Fill in Blank</option>
-                      </select>
+                  {/* MCQ Options and Correct Answer Editor */}
+                  {q.type === 'mcq' && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                          Options & Correct Answer Selection:
+                        </label>
+                        <span className="text-[10px] text-sage-600 font-semibold flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Select radio button for correct answer
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {(q.choices || ['Option A', 'Option B', 'Option C', 'Option D']).map((choice, cIdx) => {
+                          const isCorrect = q.answer === choice;
+                          return (
+                            <div
+                              key={cIdx}
+                              className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
+                                isCorrect
+                                  ? 'bg-sage-50 border-sage-500 dark:bg-sage-950/60 dark:border-sage-600 ring-1 ring-sage-500'
+                                  : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`correct_q_${qIdx}`}
+                                checked={isCorrect}
+                                onChange={() => handleAnswerSelect(qIdx, choice)}
+                                className="w-4 h-4 accent-sage-600 cursor-pointer"
+                                title="Mark this option as correct answer"
+                              />
+                              <span className="text-xs font-bold text-stone-400 w-4">
+                                {String.fromCharCode(65 + cIdx)}.
+                              </span>
+                              <input
+                                type="text"
+                                required
+                                value={choice}
+                                onChange={(e) => handleChoiceChange(qIdx, cIdx, e.target.value)}
+                                placeholder={`Option ${String.fromCharCode(65 + cIdx)}`}
+                                className="w-full bg-transparent text-xs font-medium focus:outline-none"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-500 mb-0.5">Correct Answer</label>
+                  {/* True / False Editor */}
+                  {q.type === 'tf' && (
+                    <div className="pt-1 space-y-1.5">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                        Select Correct Statement Answer:
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {['True', 'False'].map((tfOption) => {
+                          const isSelected = q.answer === tfOption;
+                          return (
+                            <button
+                              key={tfOption}
+                              type="button"
+                              onClick={() => handleAnswerSelect(qIdx, tfOption)}
+                              className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                isSelected
+                                  ? 'bg-sage-600 text-white border-sage-700 shadow-sm'
+                                  : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700'
+                              }`}
+                            >
+                              {isSelected && <CheckCircle className="w-3.5 h-3.5" />}
+                              <span>{tfOption}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fill in Blank Editor */}
+                  {q.type === 'blank' && (
+                    <div className="pt-1 space-y-1.5">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                        Expected Exact Answer Text:
+                      </label>
                       <input
                         type="text"
                         required
                         value={q.answer}
-                        onChange={(e) => {
-                          const updated = [...questions];
-                          updated[qIdx].answer = e.target.value;
-                          setQuestions(updated);
-                        }}
-                        placeholder="Exact correct answer"
-                        className="w-full px-2 py-1.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs"
+                        onChange={(e) => handleAnswerSelect(qIdx, e.target.value)}
+                        placeholder="e.g. SELECT or Tokyo"
+                        className="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-medium focus:outline-none"
                       />
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>

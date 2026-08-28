@@ -44,8 +44,38 @@ const toTeacher = (user: BackendUser): TeacherAccount => ({
 
 const toQuestion = (question: any): Question => {
   let choices: string[] = [];
-  try { choices = JSON.parse(question.choicesJson || '[]'); } catch { choices = []; }
-  return { id: question.id, type: question.type, text: question.text, choices, answer: question.answer };
+  if (Array.isArray(question.choices)) {
+    choices = question.choices;
+  } else if (Array.isArray(question.choicesJson)) {
+    choices = question.choicesJson;
+  } else if (typeof question.choicesJson === 'string' && question.choicesJson.trim()) {
+    try {
+      const parsed = JSON.parse(question.choicesJson);
+      choices = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      choices = [];
+    }
+  } else if (typeof question.choices === 'string' && question.choices.trim()) {
+    try {
+      const parsed = JSON.parse(question.choices);
+      choices = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      choices = [];
+    }
+  }
+
+  const qType = (question.type || 'mcq').toLowerCase() as 'mcq' | 'tf' | 'blank';
+  if (qType === 'tf' && choices.length === 0) {
+    choices = ['True', 'False'];
+  }
+
+  return {
+    id: Number(question.id),
+    type: qType,
+    text: question.text || question.questionText || '',
+    choices,
+    answer: question.answer || question.correctAnswer || '',
+  };
 };
 
 const toQuiz = (quiz: any): Quiz => ({
@@ -143,7 +173,7 @@ export async function createQuiz(quiz: Omit<Quiz, 'id'>) {
   const values: Record<string, string> = {
     title: quiz.title, category: quiz.isPublic ? 'public' : 'exam', year: quiz.year,
     major: quiz.major, subject: quiz.subject, overallTime: String(quiz.overallTime),
-    questionTime: String(quiz.questionTime), teacherName: quiz.teacherName,
+    questionTime: String(quiz.questionTime), teacherName: quiz.teacherName, code: quiz.code || '',
     questionCount: String(quiz.questions.length),
   };
   quiz.questions.forEach((question, index) => {

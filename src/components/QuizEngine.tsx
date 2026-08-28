@@ -383,7 +383,7 @@ export const QuizEngine: React.FC = () => {
 
         {/* Answer Options */}
         <div className="space-y-3 pt-2">
-          {currentQuestion.type === 'mcq' && currentQuestion.choices && (
+          {currentQuestion.type === 'mcq' && currentQuestion.choices && currentQuestion.choices.length > 0 && (
             currentQuestion.choices.map((choice, idx) => {
               const isSelected = userAnswers[currentQuestion.id] === choice;
               return (
@@ -403,9 +403,24 @@ export const QuizEngine: React.FC = () => {
             })
           )}
 
+          {currentQuestion.type === 'mcq' && (!currentQuestion.choices || currentQuestion.choices.length === 0) && (
+            <div>
+              <label className="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">
+                Type your answer below:
+              </label>
+              <input
+                type="text"
+                value={userAnswers[currentQuestion.id] || ''}
+                onChange={(e) => handleAnswerSelect(e.target.value)}
+                placeholder="Enter your answer..."
+                className="w-full p-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sage-500 focus:outline-none"
+              />
+            </div>
+          )}
+
           {currentQuestion.type === 'tf' && (
             <div className="grid grid-cols-2 gap-4">
-              {['True', 'False'].map((choice) => {
+              {(currentQuestion.choices && currentQuestion.choices.length > 0 ? currentQuestion.choices : ['True', 'False']).map((choice) => {
                 const isSelected = userAnswers[currentQuestion.id] === choice;
                 return (
                   <button

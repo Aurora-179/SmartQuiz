@@ -12,11 +12,10 @@ export default function TeacherPage() {
   useEffect(() => {
     if (!isMounted) return;
 
-    if (currentUser.role !== 'teacher') {
-      if (currentUser.role === 'guest') setLoginModalOpen(true);
-      router.push('/');
+    if (currentUser.role !== 'teacher' && currentUser.role === 'guest') {
+      setLoginModalOpen(true);
     }
-  }, [currentUser, isMounted, router, setLoginModalOpen]);
+  }, [currentUser, isMounted, setLoginModalOpen]);
 
   if (!isMounted) return null;
 

@@ -16,6 +16,9 @@ import {
   Award,
   ArrowRight,
   Laptop,
+  Clock,
+  PlayCircle,
+  LockKeyhole,
 } from 'lucide-react';
 
 const DEPARTMENTS = [
@@ -57,8 +60,10 @@ const DEPARTMENTS = [
 ];
 
 export const PublicHome: React.FC = () => {
-  const { currentUser, setLoginModalOpen } = useApp();
+  const { currentUser, quizzes, startQuiz, setLoginModalOpen } = useApp();
   const router = useRouter();
+  const publicQuizzes = quizzes.filter((quiz) => quiz.isPublic);
+  const privateQuizzes = quizzes.filter((quiz) => !quiz.isPublic);
 
   const handlePracticeClick = () => {
     if (currentUser.role === 'guest') {
@@ -111,6 +116,98 @@ export const PublicHome: React.FC = () => {
         <div className="hidden lg:block absolute right-8 bottom-4 opacity-15 dark:opacity-20 text-sage-700 pointer-events-none">
           <GraduationCap className="w-80 h-80 lg:w-96 lg:h-96" />
         </div>
+      </section>
+
+      {/* Public quiz catalog: available to every visitor without a private exam code. */}
+      <section className="space-y-6" aria-labelledby="public-quizzes-title">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <span className="badge-sage">Open Access</span>
+            <h2 id="public-quizzes-title" className="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-white">
+              Public Practice Quizzes
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
+              Start any open practice quiz—no private exam access code is required.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-sage-700 dark:text-sage-300">
+            {publicQuizzes.length} available
+          </span>
+        </div>
+
+        {publicQuizzes.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {publicQuizzes.slice(0, 6).map((quiz) => (
+              <article key={quiz.id} className="glass-card flex flex-col justify-between border-t-4 border-t-sage-500 p-5 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-md border border-sage-300 bg-sage-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-sage-800 dark:border-sage-700 dark:bg-sage-900/60 dark:text-sage-200">
+                      Public Practice
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-stone-400">
+                      <Clock className="h-3.5 w-3.5 text-amber-500" /> {quiz.overallTime} mins
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-stone-900 dark:text-white">{quiz.title}</h3>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">{quiz.subject} · {quiz.questions.length} questions</p>
+                </div>
+                <button
+                  onClick={() => startQuiz(quiz)}
+                  className="btn-sage inline-flex items-center justify-center gap-2 text-xs font-bold"
+                >
+                  <PlayCircle className="h-4 w-4" /> Start Public Quiz
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card border border-dashed border-stone-300 p-8 text-center text-xs text-stone-500 dark:border-stone-700 dark:text-stone-400">
+            Loading public quizzes from the backend…
+          </div>
+        )}
+      </section>
+
+      {/* Private exams are visible, but their code and questions remain gated behind the student portal. */}
+      <section className="space-y-6" aria-labelledby="private-quizzes-title">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200"><LockKeyhole className="h-3.5 w-3.5" /> Protected Access</span>
+            <h2 id="private-quizzes-title" className="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-white">
+              Private Exams
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
+              Available only to students in the assigned academic scope with an instructor-provided access code.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-rose-700 dark:text-rose-300">{privateQuizzes.length} protected exams</span>
+        </div>
+
+        {privateQuizzes.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {privateQuizzes.slice(0, 6).map((quiz) => (
+              <article key={quiz.id} className="glass-card flex flex-col justify-between border-t-4 border-t-rose-500 p-5 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-rose-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-800 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200"><LockKeyhole className="h-3 w-3" /> Private Exam</span>
+                    <span className="flex items-center gap-1 text-xs text-stone-400"><Clock className="h-3.5 w-3.5 text-amber-500" /> {quiz.overallTime} mins</span>
+                  </div>
+                  <h3 className="font-bold text-stone-900 dark:text-white">{quiz.title}</h3>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">{quiz.subject} · {quiz.major} · {quiz.year}</p>
+                </div>
+                <button
+                  onClick={() => currentUser.role === 'guest' ? setLoginModalOpen(true) : router.push('/student/practice')}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-rose-700"
+                >
+                  <LockKeyhole className="h-4 w-4" /> {currentUser.role === 'guest' ? 'Sign In to Access' : 'Enter with Access Code'}
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card border border-dashed border-stone-300 p-8 text-center text-xs text-stone-500 dark:border-stone-700 dark:text-stone-400">
+            No private exams have been published yet.
+          </div>
+        )}
       </section>
 
       {/* Specialization Departments Explorer */}

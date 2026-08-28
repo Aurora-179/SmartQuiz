@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { Quiz } from '@/types';
 import {
   BookOpen,
   Search,
@@ -13,6 +14,8 @@ import {
   Sparkles,
   Layers,
   History,
+  LockKeyhole,
+  X,
 } from 'lucide-react';
 import { QuizHistoryModal } from '@/components/Modals/QuizHistoryModal';
 
@@ -26,6 +29,10 @@ export const PracticeHub: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>('All Years');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [historyOpen, setHistoryOpen] = useState<boolean>(false);
+  const [catalogType, setCatalogType] = useState<'public' | 'private'>('public');
+  const [selectedPrivateQuiz, setSelectedPrivateQuiz] = useState<Quiz | null>(null);
+  const [accessCode, setAccessCode] = useState('');
+  const [accessError, setAccessError] = useState('');
 
   const studentAttemptsCount = attempts.filter(
     (a) =>
@@ -34,8 +41,14 @@ export const PracticeHub: React.FC = () => {
   ).length;
 
   const publicQuizzes = quizzes.filter((q) => q.isPublic);
+  const privateQuizzes = quizzes.filter((q) => {
+    if (q.isPublic) return false;
+    if (currentUser.role !== 'student') return true;
+    return q.major === currentUser.major && q.year === currentUser.year;
+  });
+  const visibleQuizzes = catalogType === 'public' ? publicQuizzes : privateQuizzes;
 
-  const filteredQuizzes = publicQuizzes.filter((quiz) => {
+  const filteredQuizzes = visibleQuizzes.filter((quiz) => {
     const matchesMajor = selectedMajor === 'All' || quiz.major === selectedMajor;
     const matchesYear = selectedYear === 'All Years' || quiz.year === selectedYear;
     const matchesSearch =
@@ -46,12 +59,50 @@ export const PracticeHub: React.FC = () => {
     return matchesMajor && matchesYear && matchesSearch;
   });
 
+  const requestPrivateQuizAccess = (quiz: Quiz) => {
+    setSelectedPrivateQuiz(quiz);
+    setAccessCode('');
+    setAccessError('');
+  };
+
+  const startPrivateQuiz = () => {
+    if (!selectedPrivateQuiz) return;
+    if (accessCode.trim() !== selectedPrivateQuiz.code) {
+      setAccessError('The 6-digit access code is incorrect.');
+      return;
+    }
+    setSelectedPrivateQuiz(null);
+    startQuiz(selectedPrivateQuiz);
+  };
+
   return (
     <div className="space-y-8 py-6">
       
 
       {/* Filter Controls Bar */}
       <div className="glass-card p-6 space-y-4 shadow-sm border border-stone-200 dark:border-stone-800">
+        <div className="flex flex-wrap gap-2 border-b border-stone-100 pb-4 dark:border-stone-800">
+          <button
+            onClick={() => setCatalogType('public')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
+              catalogType === 'public'
+                ? 'bg-sage-600 text-white shadow-sm'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700'
+            }`}
+          >
+            <BookOpen className="h-4 w-4" /> Public Practice ({publicQuizzes.length})
+          </button>
+          <button
+            onClick={() => setCatalogType('private')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
+              catalogType === 'private'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700'
+            }`}
+          >
+            <LockKeyhole className="h-4 w-4" /> Private Exams ({privateQuizzes.length})
+          </button>
+        </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           {/* Major Filter Tabs */}
@@ -154,7 +205,7 @@ export const PracticeHub: React.FC = () => {
             {filteredQuizzes.map((quiz) => (
               <div
                 key={quiz.id}
-                className="glass-card p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-t-4 border-t-sage-500"
+                className={`glass-card p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-t-4 ${quiz.isPublic ? 'border-t-sage-500' : 'border-t-rose-500'}`}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
@@ -183,11 +234,11 @@ export const PracticeHub: React.FC = () => {
                     <span className="font-semibold text-stone-700 dark:text-stone-300">{quiz.teacherName}</span>
                   </div>
                   <button
-                    onClick={() => startQuiz(quiz)}
-                    className="btn-sage text-xs py-2 px-4 flex items-center gap-1.5 font-bold shadow-sm"
+                    onClick={() => quiz.isPublic ? startQuiz(quiz) : requestPrivateQuizAccess(quiz)}
+                    className={`${quiz.isPublic ? 'btn-sage' : 'bg-rose-600 hover:bg-rose-700 text-white'} text-xs py-2 px-4 flex items-center gap-1.5 font-bold shadow-sm rounded-xl transition-colors`}
                   >
-                    <PlayCircle className="w-4 h-4" />
-                    <span>Start Practice</span>
+                    {quiz.isPublic ? <PlayCircle className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
+                    <span>{quiz.isPublic ? 'Start Practice' : 'Enter Exam'}</span>
                   </button>
                 </div>
               </div>
@@ -208,6 +259,42 @@ export const PracticeHub: React.FC = () => {
 
       {/* Quiz History Modal */}
       <QuizHistoryModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
+
+      {selectedPrivateQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 p-4 backdrop-blur-sm">
+          <div className="glass-card relative w-full max-w-md space-y-5 border border-stone-200 bg-white p-6 shadow-2xl dark:border-stone-700 dark:bg-stone-900">
+            <button
+              type="button"
+              onClick={() => setSelectedPrivateQuiz(null)}
+              className="absolute right-4 top-4 text-stone-400 hover:text-stone-700 dark:hover:text-white"
+              aria-label="Close private exam access dialog"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="space-y-1 pr-8">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-300">
+                <LockKeyhole className="h-5 w-5" />
+                <span className="text-xs font-bold uppercase tracking-wider">Private Exam</span>
+              </div>
+              <h3 className="text-lg font-extrabold text-stone-900 dark:text-white">{selectedPrivateQuiz.title}</h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400">Enter the 6-digit access code provided by your instructor to begin.</p>
+            </div>
+            <form onSubmit={(event) => { event.preventDefault(); startPrivateQuiz(); }} className="space-y-3">
+              <input
+                autoFocus
+                inputMode="numeric"
+                maxLength={6}
+                value={accessCode}
+                onChange={(event) => { setAccessCode(event.target.value.replace(/\D/g, '')); setAccessError(''); }}
+                placeholder="6-digit access code"
+                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-center font-mono text-lg font-bold tracking-[0.35em] text-stone-900 outline-none focus:ring-2 focus:ring-rose-500 dark:border-stone-700 dark:bg-stone-800 dark:text-white"
+              />
+              {accessError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">{accessError}</p>}
+              <button type="submit" className="w-full rounded-xl bg-rose-600 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-rose-700">Verify Code & Start Exam</button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
